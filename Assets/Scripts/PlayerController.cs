@@ -1,4 +1,3 @@
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -7,24 +6,44 @@ public class PlayerController : MonoBehaviour
     private Rigidbody2D body;
     private BoxCollider2D boxCollider;
 
+    private GameManager gameManager;
+
     [SerializeField] private LayerMask groundLayer;
     [SerializeField] private LayerMask boundaryLayer;
     [SerializeField] private LayerMask opponentLayer;
+
+    [SerializeField] private PlayerStats player;
+    [SerializeField] private Setting settings;
 
     private float movementInput;
 
     public bool isDucking;
     public bool isBlocking;
     private bool isAttacking;
+
+    [Header("Hitting Box Range")]
+    [SerializeField] private Vector2 attackBoxSize;
+    [SerializeField] private Vector2 attackOffset;
+
+
+    public float speed;
+
+
     private void Awake()
     {
         body = GetComponent<Rigidbody2D>();
         boxCollider = GetComponent<BoxCollider2D>();
     }
 
+    // ===== REMEMBER TO ADD ANIMATION IN LATER STAGES =====
+
     private void Start()
     {
-        
+        speed = player.speed;
+        attackBoxSize = new Vector2(1f, 0.5f);
+        attackOffset = new Vector2(0.8f, 0f);
+
+        gameManager = Object.FindAnyObjectByType<GameManager>();
     }
 
     private void Update()
@@ -39,7 +58,7 @@ public class PlayerController : MonoBehaviour
     // Prevent Jittering
     private void FixedUpdate()
     {
-        Vector2 vector = new Vector2(movementInput * 5f, body.linearVelocity.y);
+        Vector2 vector = new Vector2(movementInput * speed, body.linearVelocity.y);
         if(isBlocking)
         {
             vector.x /= 2f; //  Slow down movement when blocking
@@ -87,18 +106,31 @@ public class PlayerController : MonoBehaviour
         {
             if (Keyboard.current.jKey.wasPressedThisFrame) // Light Punch
             {
-                Debug.Log("Light Punch");
+                Attack(10f, 1f);
             }
 
             else if (Keyboard.current.kKey.wasPressedThisFrame) // Medium Punch
             {
-                Debug.Log("Medium Punch");
+                Attack(10f, settings.punch.mediumMultiplier);
             }
 
             else if (Keyboard.current.lKey.wasPressedThisFrame) // Heavy Punch
             {
-                Debug.Log("Heavy Punch");
+                Attack(10f, settings.punch.heavyMultiplier);
             }
+        }
+    }
+
+    private void Attack(float damage, float multiplier)
+    {
+        Vector2 attackPos = (Vector2)transform.position + attackOffset;
+        Collider2D hit = Physics2D.OverlapBox(attackPos, attackBoxSize, 0f, opponentLayer);
+
+        if (hit != null) {
+            float takenDamage = damage * multiplier;
+
+            PlayerStats opponentStats = hit.GetComponent<PlayerStats>();
+            gameManager.ProcessHitDetection(opponentStats, takenDamage);
         }
     }
 
@@ -117,7 +149,7 @@ public class PlayerController : MonoBehaviour
         print("Duck");
 
 
-        yield return new WaitForSeconds(0.5f); // Duck for 0.5 seconds
+        yield return new WaitForSeconds(settings.duck.duration); // Duck for 0.1 seconds
 
 
         isDucking = false;
@@ -135,6 +167,8 @@ public class PlayerController : MonoBehaviour
     private void OnDrawGizmos()
     {
         Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(transform.position, 1f);
+        
+        Vector2 attackPos = (Vector2)transform.position + attackOffset;
+        Gizmos.DrawWireCube(attackPos, attackBoxSize);
     }
 }
