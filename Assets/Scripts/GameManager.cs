@@ -2,28 +2,32 @@ using UnityEngine;
 
 public class GameManager : MonoBehaviour
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    public float timer = 5f;
+    [SerializeField] private Setting settings;
+
+    public float timer;
     public bool isTimerRunningOut = false;
+    public bool isGameEnded = false;
 
     [Header("Player 1 Stats")]
     public PlayerStats player1Stats;
-    public bool isPlayer1Hit = false;
 
 
     [Header("Player 2 Stats")]
     public PlayerStats player2Stats;
-    public bool isPlayer2Hit = false;
 
     void Start()
     {
-        
+        timer = settings.match.duration;
     }
 
     // Update is called once per frame
     void Update()
     {
-        
+        runTimer();
+        //if (!isGameEnded)
+        //{
+        //    runTimer();
+        //}
     }
 
     private void runTimer()
@@ -39,6 +43,7 @@ public class GameManager : MonoBehaviour
             {
                 timer = 0f;
                 isTimerRunningOut = true;
+                isGameEnded = true;
                 endGame();
             }
         } 
@@ -50,6 +55,20 @@ public class GameManager : MonoBehaviour
 
     public void ProcessHitDetection(PlayerStats target, float damage)
     {
+        if (target != null) {
+            if (target.isBlocking || target.isDucking)
+            {
+                damage = 0f;
+                Debug.Log("Player is blocking/ducking");
+            }
+        }
+        
         target.takenDamage(damage);
+    }
+
+    // Will implement later lol
+    private void updateHealthUI()
+    {
+
     }
 }
