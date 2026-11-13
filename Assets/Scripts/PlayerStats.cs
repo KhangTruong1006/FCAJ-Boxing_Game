@@ -8,22 +8,24 @@ public class PlayerStats : MonoBehaviour
     public float health;
     public float stamina;
     public float speed;
+    public float attackDamage;
 
     public bool isDucking;
     public bool isBlocking;
     private bool isAttacking;
 
-    void Start()
+    private void Awake()
     {
         health = character.health;
         stamina = character.stamina;
         speed = character.speed;
 
+        attackDamage = character.attackDamage;
+
         gameManager = Object.FindAnyObjectByType<GameManager>();
     }
 
-    // Update is called once per frame
-    void Update()
+    void Start()
     {
         
     }
