@@ -15,7 +15,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private PlayerStats player;
     [SerializeField] private Setting settings;
 
-    private float movementInput;
+    public float movementInput;
 
     public bool isDucking;
     public bool isBlocking;
@@ -27,28 +27,31 @@ public class PlayerController : MonoBehaviour
 
 
     public float speed;
-
+    public float attackDamage;
 
     private void Awake()
     {
         body = GetComponent<Rigidbody2D>();
         boxCollider = GetComponent<BoxCollider2D>();
+        gameManager = Object.FindAnyObjectByType<GameManager>();
     }
 
-    // ===== REMEMBER TO ADD ANIMATION IN LATER STAGES =====
+    //REMEMBER TO ADD ANIMATION IN LATER STAGES
 
     private void Start()
     {
         speed = player.speed;
-        attackBoxSize = new Vector2(1f, 0.5f);
-        attackOffset = new Vector2(0.8f, 0f);
+        attackDamage = player.attackDamage;
 
-        gameManager = Object.FindAnyObjectByType<GameManager>();
+        // REMEMBER TO MAKE A EQUATION FOR OFFSET WITH DIFFERENT CHARACTER'S ATTACK RANGE
+        attackBoxSize = new Vector2(1f, 0.5f);
+        attackOffset = new Vector2(0.8f, 0f);  
     }
 
     private void Update()
     {
         movementInput = 0f;
+
         handleVerticalMovementInput();
         handleBlockingInput();
         handlePunchInput();
@@ -89,14 +92,14 @@ public class PlayerController : MonoBehaviour
         {
             if (Keyboard.current.spaceKey.wasPressedThisFrame) // Blocking
             {
-                isBlocking = true;
-                Debug.Log("Blocking");
+                isBlocking = true;  
             }
             else if (Keyboard.current.spaceKey.wasReleasedThisFrame)
             {
                 isBlocking = false;
-                Debug.Log("Release Blocking");
             }
+
+            player.isBlocking = isBlocking;
         }
     }
 
@@ -106,17 +109,17 @@ public class PlayerController : MonoBehaviour
         {
             if (Keyboard.current.jKey.wasPressedThisFrame) // Light Punch
             {
-                Attack(10f, 1f);
+                Attack(attackDamage, settings.punch.defaultMultiplier);
             }
 
             else if (Keyboard.current.kKey.wasPressedThisFrame) // Medium Punch
             {
-                Attack(10f, settings.punch.mediumMultiplier);
+                Attack(attackDamage, settings.punch.mediumMultiplier);
             }
 
             else if (Keyboard.current.lKey.wasPressedThisFrame) // Heavy Punch
             {
-                Attack(10f, settings.punch.heavyMultiplier);
+                Attack(attackDamage, settings.punch.heavyMultiplier);
             }
         }
     }
@@ -146,6 +149,7 @@ public class PlayerController : MonoBehaviour
     private System.Collections.IEnumerator DuckCoroutine()
     {
         isDucking = true;
+        player.isDucking = isDucking;
         print("Duck");
 
 
@@ -153,6 +157,7 @@ public class PlayerController : MonoBehaviour
 
 
         isDucking = false;
+        player.isDucking = isDucking;
         print("Release Duck");
     }
     
