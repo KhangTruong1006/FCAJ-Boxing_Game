@@ -1228,7 +1228,7 @@ MonoBehaviour:
   stamina: 0
   speed: 0
   attackDamage: 0
-  isDucking: 1
+  isDucking: 0
   isBlocking: 0
 --- !u!61 &1007657235
 BoxCollider2D:
