@@ -1,8 +1,10 @@
 using UnityEngine;
+using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
 {
     [SerializeField] private Setting settings;
+    [SerializeField] private UIController ui;
 
     public float timer;
     public bool isTimerRunningOut = false;
@@ -24,10 +26,6 @@ public class GameManager : MonoBehaviour
     void Update()
     {
         runTimer();
-        //if (!isGameEnded)
-        //{
-        //    runTimer();
-        //}
     }
 
     private void runTimer()
@@ -53,7 +51,7 @@ public class GameManager : MonoBehaviour
         Debug.Log("Game Over");
     }
 
-    public void ProcessHitDetection(PlayerStats target, float damage)
+    public void ProcessHit(PlayerStats target, float damage)
     {
         if (target != null) {
             if (target.isBlocking || target.isDucking)
