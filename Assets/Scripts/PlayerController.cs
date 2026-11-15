@@ -86,6 +86,8 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+
+    // ===== Defense =====
     private void handleBlockingInput()
     {
         if (Keyboard.current != null && !isDucking)
@@ -103,40 +105,6 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    private void handlePunchInput()
-    {
-        if (Keyboard.current != null && !isDefending())
-        {
-            if (Keyboard.current.jKey.wasPressedThisFrame) // Light Punch
-            {
-                Attack(attackDamage, settings.punch.defaultMultiplier);
-            }
-
-            else if (Keyboard.current.kKey.wasPressedThisFrame) // Medium Punch
-            {
-                Attack(attackDamage, settings.punch.mediumMultiplier);
-            }
-
-            else if (Keyboard.current.lKey.wasPressedThisFrame) // Heavy Punch
-            {
-                Attack(attackDamage, settings.punch.heavyMultiplier);
-            }
-        }
-    }
-
-    private void Attack(float damage, float multiplier)
-    {
-        Vector2 attackPos = (Vector2)transform.position + attackOffset;
-        Collider2D hit = Physics2D.OverlapBox(attackPos, attackBoxSize, 0f, opponentLayer);
-
-        if (hit != null) {
-            float takenDamage = damage * multiplier;
-
-            PlayerStats opponentStats = hit.GetComponent<PlayerStats>();
-            gameManager.ProcessHitDetection(opponentStats, takenDamage);
-        }
-    }
-
     private void handleDuckingInput()
     {
         if (Keyboard.current != null && Keyboard.current.sKey.wasPressedThisFrame && !isBlocking)
@@ -145,7 +113,7 @@ public class PlayerController : MonoBehaviour
             StartCoroutine(DuckCoroutine());
         }
     }
-
+    
     private System.Collections.IEnumerator DuckCoroutine()
     {
         isDucking = true;
@@ -160,7 +128,54 @@ public class PlayerController : MonoBehaviour
         player.isDucking = isDucking;
         print("Release Duck");
     }
-    
+
+    // ===== Attack =====
+    private void handlePunchInput()
+    {
+        if (Keyboard.current == null || isDefending() || isAttacking)
+        {
+            return;
+        }
+
+        if (Keyboard.current.jKey.wasPressedThisFrame) // Light Punch
+        {
+            StartCoroutine(AttackCoroutine(attackDamage, settings.punch.defaultMultiplier));
+        }
+
+        else if (Keyboard.current.kKey.wasPressedThisFrame) // Medium Punch
+        {
+            StartCoroutine(AttackCoroutine(attackDamage, settings.punch.mediumMultiplier));
+        }
+
+        else if (Keyboard.current.lKey.wasPressedThisFrame) // Heavy Punch
+        {
+            StartCoroutine(AttackCoroutine(attackDamage, settings.punch.heavyMultiplier));
+        }
+    }
+    private void Attack(float damage, float multiplier)
+    {
+        Vector2 attackPos = (Vector2)transform.position + attackOffset;
+        Collider2D hit = Physics2D.OverlapBox(attackPos, attackBoxSize, 0f, opponentLayer);
+
+        if (hit != null) {
+            float takenDamage = damage * multiplier;
+
+            PlayerStats opponentStats = hit.GetComponent<PlayerStats>();
+            gameManager.ProcessHit(opponentStats, takenDamage);
+        }
+    }
+
+    private System.Collections.IEnumerator AttackCoroutine(float damage,
+    float multiplier)
+    {
+        isAttacking = true;
+
+        yield return new WaitForSeconds(1f);
+
+        Attack(damage, multiplier);
+        isAttacking = false;
+    }
+   
     //===== Condition =====
     private bool isDefending()
     {
