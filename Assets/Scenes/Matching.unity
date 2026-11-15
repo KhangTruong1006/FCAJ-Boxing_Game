@@ -2078,6 +2078,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GameManager
   settings: {fileID: 11400000, guid: 19b4a23f38b447d4aac3e2fbc62265cd, type: 2}
+  ui: {fileID: 2035070395}
   timer: 5
   isTimerRunningOut: 0
   isGameEnded: 0
