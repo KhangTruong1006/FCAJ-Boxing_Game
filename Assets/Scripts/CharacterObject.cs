@@ -15,5 +15,7 @@ public class CharacterObject : ScriptableObject
 
     public float attackDamage;
     public float attackRange;
-    public float attackSpeed; // Cooldown between attacks
+
+    [Range(0f, 1f)]
+    public float attackSpeed; // Delay between input and inflicting damage
 }
