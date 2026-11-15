@@ -342,8 +342,8 @@ MonoBehaviour:
   m_HandleRect: {fileID: 1641817122}
   m_Direction: 0
   m_MinValue: 0
-  m_MaxValue: 1
-  m_WholeNumbers: 0
+  m_MaxValue: 100
+  m_WholeNumbers: 1
   m_Value: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -786,10 +786,10 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 447900605}
   m_FillRect: {fileID: 984511833}
   m_HandleRect: {fileID: 447900604}
-  m_Direction: 0
+  m_Direction: 1
   m_MinValue: 0
-  m_MaxValue: 1
-  m_WholeNumbers: 0
+  m_MaxValue: 100
+  m_WholeNumbers: 1
   m_Value: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -1597,7 +1597,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0.25}
   m_AnchorMax: {x: 1, y: 0.75}
-  m_AnchoredPosition: {x: -5, y: 0}
+  m_AnchoredPosition: {x: 5, y: 0}
   m_SizeDelta: {x: -20, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &1641817121
@@ -2042,6 +2042,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2035070393}
   - component: {fileID: 2035070394}
+  - component: {fileID: 2035070395}
   m_Layer: 0
   m_Name: GameManger
   m_TagString: Untagged
@@ -2082,6 +2083,21 @@ MonoBehaviour:
   isGameEnded: 0
   player1Stats: {fileID: 900100925}
   player2Stats: {fileID: 1007657234}
+--- !u!114 &2035070395
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2035070392}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 27f922d77138e9441b195edcb997f03e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UIController
+  healthSlider1: {fileID: 52662234}
+  healthSlider2: {fileID: 672239824}
+  gameManager: {fileID: 2035070394}
 --- !u!1 &2121553107
 GameObject:
   m_ObjectHideFlags: 0
