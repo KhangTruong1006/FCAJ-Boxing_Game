@@ -21,10 +21,8 @@ public class PlayerController : MonoBehaviour
     public bool isBlocking;
     public bool isAttacking;
 
-    [Header("Hitting Box Range")]
-    [SerializeField] private Vector2 attackBoxSize;
-    [SerializeField] private Vector2 attackOffset;
-
+    private Vector2 attackBoxSize;
+    private Vector2 attackOffset;
 
     public float speed;
     public float attackDamage;
@@ -47,9 +45,7 @@ public class PlayerController : MonoBehaviour
         attackDamage = player.attackDamage;
         attackSpeed = player.attackSpeed;
 
-        // REMEMBER TO MAKE A EQUATION FOR OFFSET WITH DIFFERENT CHARACTER'S ATTACK RANGE
-        attackBoxSize = new Vector2(1f, 0.5f);
-        attackOffset = new Vector2(0.8f, 0f);  
+        setPlayerHitBox(player.attackRange);
     }
 
     private void Update()
@@ -122,15 +118,13 @@ public class PlayerController : MonoBehaviour
     {
         isDucking = true;
         player.isDucking = isDucking;
-        print("Duck");
 
 
-        yield return new WaitForSeconds(settings.duck.duration); // Duck for 0.1 seconds
+        yield return new WaitForSeconds(settings.duck.duration); // Duck based on duration setting (0.1s)
 
 
         isDucking = false;
         player.isDucking = isDucking;
-        print("Release Duck");
     }
 
     // ===== Attack =====
@@ -188,6 +182,15 @@ public class PlayerController : MonoBehaviour
         return isBlocking || isDucking;
     }
 
+    // ===== Other =====
+    private void setPlayerHitBox(float range)
+    {
+        float boxSize = 1f + range;
+        float offset = 1f + range / 2;
+
+        attackBoxSize = new Vector2(boxSize, transform.localScale.y);
+        attackOffset = new Vector2(offset, 0f);
+    }
 
     //===== Gizmos =====
     private void OnDrawGizmos()
