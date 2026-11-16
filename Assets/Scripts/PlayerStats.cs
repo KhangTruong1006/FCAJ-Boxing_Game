@@ -8,8 +8,10 @@ public class PlayerStats : MonoBehaviour
     public float health;
     public float stamina;
     public float speed;
+
     public float attackDamage;
     public float attackSpeed;
+    public float attackRange;
 
     public bool isDucking;
     public bool isBlocking;
@@ -23,6 +25,7 @@ public class PlayerStats : MonoBehaviour
 
         attackDamage = character.attackDamage;
         attackSpeed = character.attackSpeed;
+        attackRange = character.attackRange;
 
         gameManager = Object.FindAnyObjectByType<GameManager>();
     }
