@@ -1110,8 +1110,8 @@ MonoBehaviour:
   isDucking: 0
   isBlocking: 0
   isAttacking: 0
-  attackBoxSize: {x: 1.1, y: 0.8}
-  attackOffset: {x: 0.8, y: 0.35}
+  attackBoxSize: {x: 1.5, y: 2.5}
+  attackOffset: {x: 1.25, y: 0}
   speed: 0
   attackDamage: 0
 --- !u!114 &900100925
