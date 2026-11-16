@@ -14,6 +14,7 @@ public class CharacterObject : ScriptableObject
     public float speed;
 
     public float attackDamage;
+    [Range(0f, 1f)]
     public float attackRange;
 
     [Range(0f, 1f)]
