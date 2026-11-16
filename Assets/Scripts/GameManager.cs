@@ -7,7 +7,6 @@ public class GameManager : MonoBehaviour
     [SerializeField] private UIController ui;
 
     public float timer;
-    public bool isTimerRunningOut = false;
     public bool isGameEnded = false;
 
     public bool isGracePeriod = true;
@@ -34,7 +33,7 @@ public class GameManager : MonoBehaviour
 
     private void runTimer()
     {
-        if(!isTimerRunningOut)
+        if(!isGameEnded)
         {
             if (timer > 0f)
             {
@@ -51,7 +50,6 @@ public class GameManager : MonoBehaviour
     }
     public void endGame()
     {
-        isTimerRunningOut = true;
         isGameEnded = true;
 
         float health_1 = player1Stats.health;
