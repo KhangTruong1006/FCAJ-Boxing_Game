@@ -28,11 +28,13 @@ public class PlayerController : MonoBehaviour
 
     public float speed;
     public float attackDamage;
+    private float attackSpeed;
 
     private void Awake()
     {
         body = GetComponent<Rigidbody2D>();
         boxCollider = GetComponent<BoxCollider2D>();
+        player = GetComponent<PlayerStats>();
         gameManager = Object.FindAnyObjectByType<GameManager>();
     }
 
@@ -41,7 +43,9 @@ public class PlayerController : MonoBehaviour
     private void Start()
     {
         speed = player.speed;
+        
         attackDamage = player.attackDamage;
+        attackSpeed = player.attackSpeed;
 
         // REMEMBER TO MAKE A EQUATION FOR OFFSET WITH DIFFERENT CHARACTER'S ATTACK RANGE
         attackBoxSize = new Vector2(1f, 0.5f);
@@ -171,7 +175,7 @@ public class PlayerController : MonoBehaviour
         isAttacking = true;
         player.isAttacking = isAttacking;
 
-        yield return new WaitForSeconds(1f);
+        yield return new WaitForSeconds(attackSpeed);
 
         Attack(damage, multiplier);
         isAttacking = false;
