@@ -806,6 +806,7 @@ GameObject:
   - component: {fileID: 884653789}
   - component: {fileID: 884653788}
   - component: {fileID: 884653787}
+  - component: {fileID: 884653791}
   m_Layer: 5
   m_Name: Canvas
   m_TagString: Untagged
@@ -898,6 +899,21 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
+--- !u!114 &884653791
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 884653786}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 27f922d77138e9441b195edcb997f03e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UIController
+  healthSlider1: {fileID: 52662234}
+  healthSlider2: {fileID: 672239824}
+  gameManager: {fileID: 2035070394}
 --- !u!1 &900100919
 GameObject:
   m_ObjectHideFlags: 0
@@ -1115,6 +1131,7 @@ MonoBehaviour:
   stamina: 0
   speed: 0
   attackDamage: 0
+  attackSpeed: 0
   isDucking: 0
   isBlocking: 0
   isAttacking: 0
@@ -1230,6 +1247,7 @@ MonoBehaviour:
   stamina: 0
   speed: 0
   attackDamage: 0
+  attackSpeed: 0
   isDucking: 0
   isBlocking: 0
   isAttacking: 0
@@ -2045,7 +2063,6 @@ GameObject:
   m_Component:
   - component: {fileID: 2035070393}
   - component: {fileID: 2035070394}
-  - component: {fileID: 2035070395}
   m_Layer: 0
   m_Name: GameManger
   m_TagString: Untagged
@@ -2081,7 +2098,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GameManager
   settings: {fileID: 11400000, guid: 19b4a23f38b447d4aac3e2fbc62265cd, type: 2}
-  ui: {fileID: 2035070395}
+  ui: {fileID: 884653791}
   timer: 5
   isTimerRunningOut: 0
   isGameEnded: 0
@@ -2089,21 +2106,6 @@ MonoBehaviour:
   graceTimer: 0
   player1Stats: {fileID: 900100925}
   player2Stats: {fileID: 1007657234}
---- !u!114 &2035070395
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2035070392}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 27f922d77138e9441b195edcb997f03e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::UIController
-  healthSlider1: {fileID: 52662234}
-  healthSlider2: {fileID: 672239824}
-  gameManager: {fileID: 2035070394}
 --- !u!1 &2121553107
 GameObject:
   m_ObjectHideFlags: 0
