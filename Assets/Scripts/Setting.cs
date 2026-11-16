@@ -11,6 +11,7 @@ public class Setting : ScriptableObject
     public class Match
     {
         public float duration = 90f;
+        public float grace_period = 5f;
     }
      
     [System.Serializable]

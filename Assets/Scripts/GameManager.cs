@@ -10,6 +10,9 @@ public class GameManager : MonoBehaviour
     public bool isTimerRunningOut = false;
     public bool isGameEnded = false;
 
+    public bool isGracePeriod = true;
+    public float graceTimer;
+
     [Header("Player 1 Stats")]
     public PlayerStats player1Stats;
 
@@ -19,7 +22,8 @@ public class GameManager : MonoBehaviour
 
     void Start()
     {
-        timer = settings.match.duration;
+        graceTimer = settings.match.grace_period;
+        timer = settings.match.duration;  
     }
 
     // Update is called once per frame
@@ -53,6 +57,10 @@ public class GameManager : MonoBehaviour
 
     public void ProcessHit(PlayerStats target, float damage)
     {
+        if (isGracePeriod) {
+            return;
+        }
+
         if (target != null) {
             if (target.isBlocking || target.isDucking)
             {
