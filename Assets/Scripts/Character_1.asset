@@ -18,5 +18,5 @@ MonoBehaviour:
   stamina: 100
   speed: 5
   attackDamage: 10
-  attackRange: 2
+  attackRange: 0.1
   attackSpeed: 0.15
