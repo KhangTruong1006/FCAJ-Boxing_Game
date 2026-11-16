@@ -39,42 +39,67 @@ public class GameManager : MonoBehaviour
             if (timer > 0f)
             {
                 timer -= Time.deltaTime;
+                return;
             }
 
             else
             {
                 timer = 0f;
-                isTimerRunningOut = true;
-                isGameEnded = true;
                 endGame();
             }
         } 
     }
     public void endGame()
     {
-        Debug.Log("Game Over");
+        isTimerRunningOut = true;
+        isGameEnded = true;
+
+        float health_1 = player1Stats.health;
+        float health_2 = player2Stats.health;
+        
+        if (health_1 > health_2)
+        {
+            Debug.Log("Player 1 Won");
+        }
+
+        else if (health_1 < health_2)
+        {
+            Debug.Log("Player 2 Won");
+        }
+
+        else {
+            Debug.Log("Tie");
+        }
     }
 
     public void ProcessHit(PlayerStats target, float damage)
     {
-        if (isGracePeriod) {
-            return;
-        }
+        //if (isGracePeriod) {
+        //    return;
+        //}
 
         if (target != null) {
             if (target.isBlocking || target.isDucking)
             {
                 damage = 0f;
-                Debug.Log("Player is blocking/ducking");
             }
         }
         
         target.takenDamage(damage);
+        updateHealthBar(target);
     }
 
-    // Will implement later lol
-    private void updateHealthUI()
-    {
 
+    private void updateHealthBar(PlayerStats target)
+    {
+        if (target == player1Stats)
+        {
+            ui.fillHealthSliderBasedOnValue(ui.healthSlider1, target.health);
+        }
+
+        else if (target == player2Stats)
+        {
+            ui.fillHealthSliderBasedOnValue(ui.healthSlider2, target.health);
+        }
     }
 }
