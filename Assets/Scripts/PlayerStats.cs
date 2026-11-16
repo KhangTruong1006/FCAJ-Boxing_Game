@@ -9,6 +9,7 @@ public class PlayerStats : MonoBehaviour
     public float stamina;
     public float speed;
     public float attackDamage;
+    public float attackSpeed;
 
     public bool isDucking;
     public bool isBlocking;
@@ -21,13 +22,9 @@ public class PlayerStats : MonoBehaviour
         speed = character.speed;
 
         attackDamage = character.attackDamage;
+        attackSpeed = character.attackSpeed;
 
         gameManager = Object.FindAnyObjectByType<GameManager>();
-    }
-
-    void Start()
-    {
-        
     }
 
     public void takenDamage(float damage)
@@ -35,8 +32,8 @@ public class PlayerStats : MonoBehaviour
         health -= damage;
         if(health <= 0)
         {
-            gameManager.endGame();
-            Debug.Log("Player has died.");
+           health = 0;
+           gameManager.endGame();
         }
     }
 }
