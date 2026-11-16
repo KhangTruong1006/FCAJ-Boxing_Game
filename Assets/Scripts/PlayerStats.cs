@@ -12,7 +12,7 @@ public class PlayerStats : MonoBehaviour
 
     public bool isDucking;
     public bool isBlocking;
-    private bool isAttacking;
+    public bool isAttacking;
 
     private void Awake()
     {

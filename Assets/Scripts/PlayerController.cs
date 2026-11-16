@@ -19,7 +19,7 @@ public class PlayerController : MonoBehaviour
 
     public bool isDucking;
     public bool isBlocking;
-    private bool isAttacking;
+    public bool isAttacking;
 
     [Header("Hitting Box Range")]
     [SerializeField] private Vector2 attackBoxSize;
@@ -169,11 +169,13 @@ public class PlayerController : MonoBehaviour
     float multiplier)
     {
         isAttacking = true;
+        player.isAttacking = isAttacking;
 
         yield return new WaitForSeconds(1f);
 
         Attack(damage, multiplier);
         isAttacking = false;
+        player.isAttacking = isAttacking;
     }
    
     //===== Condition =====

@@ -1093,6 +1093,7 @@ MonoBehaviour:
   movementInput: 0
   isDucking: 0
   isBlocking: 0
+  isAttacking: 0
   attackBoxSize: {x: 1.1, y: 0.8}
   attackOffset: {x: 0.8, y: 0.35}
   speed: 0
@@ -1116,6 +1117,7 @@ MonoBehaviour:
   attackDamage: 0
   isDucking: 0
   isBlocking: 0
+  isAttacking: 0
 --- !u!1 &984511832
 GameObject:
   m_ObjectHideFlags: 0
@@ -1230,6 +1232,7 @@ MonoBehaviour:
   attackDamage: 0
   isDucking: 0
   isBlocking: 0
+  isAttacking: 0
 --- !u!61 &1007657235
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -2082,6 +2085,8 @@ MonoBehaviour:
   timer: 5
   isTimerRunningOut: 0
   isGameEnded: 0
+  isGracePeriod: 1
+  graceTimer: 0
   player1Stats: {fileID: 900100925}
   player2Stats: {fileID: 1007657234}
 --- !u!114 &2035070395
