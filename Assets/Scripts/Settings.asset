@@ -19,5 +19,5 @@ MonoBehaviour:
   duck:
     duration: 0.1
   match:
-    duration: 5
-    grace_period: 5
+    duration: 91
+    grace_period: 6
