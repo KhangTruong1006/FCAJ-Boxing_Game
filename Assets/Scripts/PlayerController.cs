@@ -53,6 +53,10 @@ public class PlayerController : MonoBehaviour
     {
         movementInput = 0f;
 
+        if (gameManager != null && isGameEndedOrGracePeriod()) { 
+            return;
+        }
+
         handleVerticalMovementInput();
         handleBlockingInput();
         handlePunchInput();
@@ -62,6 +66,10 @@ public class PlayerController : MonoBehaviour
     // Prevent Jittering
     private void FixedUpdate()
     {
+        if (gameManager != null && isGameEndedOrGracePeriod())
+        {
+            return;
+        }
         Vector2 vector = new Vector2(movementInput * speed, body.linearVelocity.y);
         if(isBlocking)
         {
@@ -180,6 +188,11 @@ public class PlayerController : MonoBehaviour
     private bool isDefending()
     {
         return isBlocking || isDucking;
+    }
+
+    private bool isGameEndedOrGracePeriod()
+    {
+        return gameManager.isGameEnded || gameManager.isGracePeriod;
     }
 
     // ===== Other =====

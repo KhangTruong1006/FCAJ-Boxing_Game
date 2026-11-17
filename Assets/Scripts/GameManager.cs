@@ -9,8 +9,8 @@ public class GameManager : MonoBehaviour
     public float timer;
     public bool isGameEnded = false;
 
-    public bool isGracePeriod = true;
     public float graceTimer;
+    public bool isGracePeriod = true;
 
     [Header("Player 1 Stats")]
     public PlayerStats player1Stats;
@@ -28,7 +28,31 @@ public class GameManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        runTimer();
+        runGraceTimer();
+
+        if (!isGracePeriod)
+        {
+            runTimer();
+        }       
+    }
+
+    private void runGraceTimer()
+    {
+        if (isGracePeriod)
+        {
+            if (graceTimer > 0f)
+            {
+                graceTimer -= Time.deltaTime;
+                
+            }
+            else
+            {
+                graceTimer = 0f;
+                isGracePeriod = false;
+                Debug.Log("Grace period ended. Match started!");
+            }
+            ui.displayTimer(graceTimer);
+        }
     }
 
     private void runTimer()
@@ -38,7 +62,6 @@ public class GameManager : MonoBehaviour
             if (timer > 0f)
             {
                 timer -= Time.deltaTime;
-                return;
             }
 
             else
@@ -46,6 +69,8 @@ public class GameManager : MonoBehaviour
                 timer = 0f;
                 endGame();
             }
+
+            ui.displayTimer(timer);
         } 
     }
     public void endGame()
@@ -72,9 +97,10 @@ public class GameManager : MonoBehaviour
 
     public void ProcessHit(PlayerStats target, float damage)
     {
-        //if (isGracePeriod) {
-        //    return;
-        //}
+        if (isGracePeriod)
+        {
+            return;
+        }
 
         if (target != null) {
             if (target.isBlocking || target.isDucking)
