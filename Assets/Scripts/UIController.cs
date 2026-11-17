@@ -1,3 +1,4 @@
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -5,6 +6,7 @@ public class UIController : MonoBehaviour
 {
     [SerializeField] public Slider healthSlider1, healthSlider2;
     [SerializeField] private GameManager gameManager;
+    [SerializeField] private TextMeshProUGUI timerText;
 
     private void Start()
     {
@@ -27,5 +29,13 @@ public class UIController : MonoBehaviour
     public void fillHealthSliderBasedOnValue(Slider slider, float value)
     {
         slider.value = value;
+    }
+
+    public void displayTimer(float time)
+    {
+        int minutes = Mathf.FloorToInt(time / 60);
+        int seconds = Mathf.FloorToInt(time % 60);
+
+        timerText.text = string.Format("{0:00} : {1:00}", minutes, seconds);
     }
 }
