@@ -15,23 +15,24 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private PlayerStats player;
     [SerializeField] private Setting settings;
 
-    public float movementInput;
+    private float movementInput;
 
-    public bool isDucking;
-    public bool isBlocking;
-    public bool isAttacking;
+    private bool isDucking;
+    private bool isBlocking;
+    private bool isAttacking;
 
     private Vector2 attackBoxSize;
     private Vector2 attackOffset;
 
-    public float speed;
-    public float attackDamage;
+    private float speed;
+    private float attackDamage;
     private float attackSpeed;
 
     private void Awake()
     {
         body = GetComponent<Rigidbody2D>();
         boxCollider = GetComponent<BoxCollider2D>();
+        
         player = GetComponent<PlayerStats>();
         gameManager = Object.FindAnyObjectByType<GameManager>();
     }
@@ -163,8 +164,7 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    private System.Collections.IEnumerator AttackCoroutine(float damage,
-    float multiplier)
+    private System.Collections.IEnumerator AttackCoroutine(float damage, float multiplier)
     {
         isAttacking = true;
         player.isAttacking = isAttacking;
