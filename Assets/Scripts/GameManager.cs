@@ -49,7 +49,6 @@ public class GameManager : MonoBehaviour
             {
                 graceTimer = 0f;
                 isGracePeriod = false;
-                Debug.Log("Grace period ended. Match started!");
             }
             ui.displayTimer(graceTimer);
         }
@@ -79,20 +78,23 @@ public class GameManager : MonoBehaviour
 
         float health_1 = player1Stats.health;
         float health_2 = player2Stats.health;
+        string message = "";
         
         if (health_1 > health_2)
         {
-            Debug.Log("Player 1 Won");
+            message = "Player 1 Won";
         }
 
         else if (health_1 < health_2)
         {
-            Debug.Log("Player 2 Won");
+            message = "Player 2 Won";
         }
 
         else {
-            Debug.Log("Tie");
+            message = "Tie";
         }
+
+        ui.displayResult(message);
     }
 
     public void ProcessHit(PlayerStats target, float damage)
