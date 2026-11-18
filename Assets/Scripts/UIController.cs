@@ -5,6 +5,7 @@ using UnityEngine.UI;
 public class UIController : MonoBehaviour
 {
     [SerializeField] public Slider healthSlider1, healthSlider2;
+    [SerializeField] public Slider StaminaSlider1, StaminaSlider2;
     [SerializeField] public GameObject resultPanel;
     [SerializeField] private GameManager gameManager;
     [SerializeField] private TextMeshProUGUI timerText, resultText;
