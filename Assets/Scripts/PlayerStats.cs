@@ -17,6 +17,8 @@ public class PlayerStats : MonoBehaviour
     public bool isBlocking;
     public bool isAttacking;
 
+    public bool isExhausted;
+
     private void Awake()
     {
         health = character.health;
@@ -38,5 +40,30 @@ public class PlayerStats : MonoBehaviour
            health = 0;
            gameManager.endGame();
         }
+    }
+
+    // ===== Conditions =====
+    // Can either duck or block at a moment, not both
+    public void setBlocking(bool blocking)
+    {
+        isBlocking = blocking;
+        if (isBlocking)
+        {
+            isDucking = false;
+        }
+    }
+
+    public void setDucking(bool ducking)
+    {
+        isDucking = ducking;
+        if (isDucking)
+        {
+            isBlocking = false;
+        }
+    }
+
+    public void setAttacking(bool attacking)
+    {
+        isAttacking = attacking;
     }
 }

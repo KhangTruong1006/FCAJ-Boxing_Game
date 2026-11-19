@@ -17,10 +17,6 @@ public class PlayerController : MonoBehaviour
 
     private float movementInput;
 
-    private bool isDucking;
-    private bool isBlocking;
-    private bool isAttacking;
-
     private Vector2 attackBoxSize;
     private Vector2 attackOffset;
 
@@ -71,7 +67,7 @@ public class PlayerController : MonoBehaviour
             return;
         }
         Vector2 vector = new Vector2(movementInput * speed, body.linearVelocity.y);
-        if(isBlocking)
+        if(isPlayerBlocking())
         {
             vector.x /= 2f; //  Slow down movement when blocking
         }
@@ -99,24 +95,22 @@ public class PlayerController : MonoBehaviour
     // ===== Defense =====
     private void handleBlockingInput()
     {
-        if (Keyboard.current != null && !isDucking)
+        if (Keyboard.current != null && !isPlayerDucking())
         {
             if (Keyboard.current.spaceKey.wasPressedThisFrame) // Blocking
             {
-                isBlocking = true;  
+                player.setBlocking(true);  
             }
             else if (Keyboard.current.spaceKey.wasReleasedThisFrame)
             {
-                isBlocking = false;
-            }
-
-            player.isBlocking = isBlocking;
+                player.setBlocking(false);
+            }    
         }
     }
 
     private void handleDuckingInput()
     {
-        if (Keyboard.current != null && Keyboard.current.sKey.wasPressedThisFrame && !isBlocking)
+        if (Keyboard.current != null && Keyboard.current.sKey.wasPressedThisFrame && !isDefending())
         {
             // Ducking timing is independent from update
             StartCoroutine(DuckCoroutine());
@@ -125,21 +119,19 @@ public class PlayerController : MonoBehaviour
     
     private System.Collections.IEnumerator DuckCoroutine()
     {
-        isDucking = true;
-        player.isDucking = isDucking;
+        player.setDucking(true);
 
 
         yield return new WaitForSeconds(settings.duck.duration); // Duck based on duration setting (0.1s)
 
 
-        isDucking = false;
-        player.isDucking = isDucking;
+        player.setDucking(false);
     }
 
     // ===== Attack =====
     private void handlePunchInput()
     {
-        if (Keyboard.current == null || isDefending() || isAttacking)
+        if (Keyboard.current == null || isDefending() || isPlayerAttacking())
         {
             return;
         }
@@ -174,20 +166,33 @@ public class PlayerController : MonoBehaviour
 
     private System.Collections.IEnumerator AttackCoroutine(float damage, float multiplier)
     {
-        isAttacking = true;
-        player.isAttacking = isAttacking;
+        player.setAttacking(true);
 
         yield return new WaitForSeconds(attackSpeed);
 
         Attack(damage, multiplier);
-        isAttacking = false;
-        player.isAttacking = isAttacking;
+        player.setAttacking(false);
     }
    
     //===== Condition =====
     private bool isDefending()
     {
-        return isBlocking || isDucking;
+        return player.isBlocking || player.isDucking;
+    }
+
+    private bool isPlayerDucking()
+    {
+        return player.isDucking;
+    }
+
+    private bool isPlayerBlocking()
+    {
+        return player.isBlocking;
+    }
+
+    private bool isPlayerAttacking()
+    {
+        return player.isAttacking;
     }
 
     private bool isGameEndedOrGracePeriod()
