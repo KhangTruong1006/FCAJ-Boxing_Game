@@ -19,7 +19,7 @@ public class UIController : MonoBehaviour
     private void displayHealthUponStart(Slider slider, float health)
     {
         setSliderMaxValue(slider, health);
-        fillHealthSliderBasedOnValue(slider, health);
+        fillSliderBasedOnValue(slider, health);
     }
 
     private void setSliderMaxValue(Slider slider, float maxValue)
@@ -27,7 +27,7 @@ public class UIController : MonoBehaviour
         slider.maxValue = maxValue;
     }
 
-    public void fillHealthSliderBasedOnValue(Slider slider, float value)
+    public void fillSliderBasedOnValue(Slider slider, float value)
     {
         slider.value = value;
     }

@@ -120,12 +120,12 @@ public class GameManager : MonoBehaviour
     {
         if (target == player1Stats)
         {
-            ui.fillHealthSliderBasedOnValue(ui.healthSlider1, target.health);
+            ui.fillSliderBasedOnValue(ui.healthSlider1, target.health);
         }
 
         else if (target == player2Stats)
         {
-            ui.fillHealthSliderBasedOnValue(ui.healthSlider2, target.health);
+            ui.fillSliderBasedOnValue(ui.healthSlider2, target.health);
         }
     }
 }
