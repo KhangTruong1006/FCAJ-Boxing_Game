@@ -49,7 +49,7 @@ public class PlayerController : MonoBehaviour
     {
         movementInput = 0f;
 
-        if (gameManager != null && isGameEndedOrGracePeriod()) { 
+        if (gameManager != null && gameManager.isGameEndedOrGracePeriod()) { 
             return;
         }
 
@@ -62,7 +62,7 @@ public class PlayerController : MonoBehaviour
     // Prevent Jittering
     private void FixedUpdate()
     {
-        if (gameManager != null && isGameEndedOrGracePeriod())
+        if (gameManager != null && gameManager.isGameEndedOrGracePeriod())
         {
             return;
         }
@@ -193,11 +193,6 @@ public class PlayerController : MonoBehaviour
     private bool isPlayerAttacking()
     {
         return player.isAttacking;
-    }
-
-    private bool isGameEndedOrGracePeriod()
-    {
-        return gameManager.isGameEnded || gameManager.isGracePeriod;
     }
 
     // ===== Other =====

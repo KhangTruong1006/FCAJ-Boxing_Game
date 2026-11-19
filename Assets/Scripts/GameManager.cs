@@ -115,6 +115,10 @@ public class GameManager : MonoBehaviour
         updateHealthBar(target);
     }
 
+    public bool isGameEndedOrGracePeriod()
+    {
+        return isGameEnded || isGracePeriod;
+    }
 
     private void updateHealthBar(PlayerStats target)
     {
