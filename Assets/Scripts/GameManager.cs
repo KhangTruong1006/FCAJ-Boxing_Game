@@ -115,17 +115,21 @@ public class GameManager : MonoBehaviour
         updateHealthBar(target);
     }
 
+    public bool isGameEndedOrGracePeriod()
+    {
+        return isGameEnded || isGracePeriod;
+    }
 
     private void updateHealthBar(PlayerStats target)
     {
         if (target == player1Stats)
         {
-            ui.fillHealthSliderBasedOnValue(ui.healthSlider1, target.health);
+            ui.fillSliderBasedOnValue(ui.healthSlider1, target.health);
         }
 
         else if (target == player2Stats)
         {
-            ui.fillHealthSliderBasedOnValue(ui.healthSlider2, target.health);
+            ui.fillSliderBasedOnValue(ui.healthSlider2, target.health);
         }
     }
 }

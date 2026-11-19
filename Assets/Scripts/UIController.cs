@@ -4,22 +4,27 @@ using UnityEngine.UI;
 
 public class UIController : MonoBehaviour
 {
-    [SerializeField] public Slider healthSlider1, healthSlider2;
-    [SerializeField] public Slider StaminaSlider1, StaminaSlider2;
+    [SerializeField] public Slider healthSlider1, staminaSlider1;
+    [SerializeField] public Slider healthSlider2, staminaSlider2;
     [SerializeField] public GameObject resultPanel;
     [SerializeField] private GameManager gameManager;
     [SerializeField] private TextMeshProUGUI timerText, resultText;
 
     private void Start()
     {
-        displayHealthUponStart(healthSlider1, gameManager.player1Stats.health);
-        displayHealthUponStart(healthSlider2, gameManager.player2Stats.health);
+        // Player 1 Stats - Healht & Stamina
+        displaySliderValueUponStart(healthSlider1, gameManager.player1Stats.health);
+        displaySliderValueUponStart(staminaSlider1, gameManager.player1Stats.stamina);
+
+        // Player 2 Stats - Healht & Stamina
+        displaySliderValueUponStart(healthSlider2, gameManager.player2Stats.health);
+        displaySliderValueUponStart(staminaSlider2, gameManager.player2Stats.stamina);
     }
 
-    private void displayHealthUponStart(Slider slider, float health)
+    private void displaySliderValueUponStart(Slider slider, float stat)
     {
-        setSliderMaxValue(slider, health);
-        fillHealthSliderBasedOnValue(slider, health);
+        setSliderMaxValue(slider, stat);
+        fillSliderBasedOnValue(slider, stat);
     }
 
     private void setSliderMaxValue(Slider slider, float maxValue)
@@ -27,7 +32,7 @@ public class UIController : MonoBehaviour
         slider.maxValue = maxValue;
     }
 
-    public void fillHealthSliderBasedOnValue(Slider slider, float value)
+    public void fillSliderBasedOnValue(Slider slider, float value)
     {
         slider.value = value;
     }
