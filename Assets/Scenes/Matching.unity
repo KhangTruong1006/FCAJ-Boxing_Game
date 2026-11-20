@@ -2934,7 +2934,7 @@ MonoBehaviour:
   isGameEnded: 0
   graceTimer: 0
   isGracePeriod: 1
-  player1Stats: {fileID: 0}
+  player1Stats: {fileID: 900100925}
   player2Stats: {fileID: 1007657234}
 --- !u!1 &2121553107
 GameObject:
