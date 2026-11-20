@@ -16,6 +16,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private Setting settings;
 
     private float movementInput;
+    private float facingIndex;
 
     private Vector2 attackBoxSize;
     private Vector2 attackOffset;
@@ -23,6 +24,11 @@ public class PlayerController : MonoBehaviour
     private float speed;
     private float attackDamage;
     private float attackSpeed;
+
+    private const float lightPunchCost = 6f;
+    private const float mediumPunchCost = 12f;
+    private const float heavyPunchCost = 20f;
+    private const float duckCost = 8f;
 
     private void Awake()
     {
@@ -42,6 +48,7 @@ public class PlayerController : MonoBehaviour
         attackDamage = player.attackDamage;
         attackSpeed = player.attackSpeed;
 
+        setPlayerDirection();
         setPlayerHitBox(player.attackRange);
     }
 
@@ -67,7 +74,7 @@ public class PlayerController : MonoBehaviour
             return;
         }
         Vector2 vector = new Vector2(movementInput * speed, body.linearVelocity.y);
-        if(isPlayerBlocking())
+        if(isPlayerBlocking() || isPlayerExhausted())
         {
             vector.x /= 2f; //  Slow down movement when blocking
         }
@@ -110,10 +117,12 @@ public class PlayerController : MonoBehaviour
 
     private void handleDuckingInput()
     {
-        if (Keyboard.current != null && Keyboard.current.sKey.wasPressedThisFrame && !isDefending())
+        if (Keyboard.current != null && Keyboard.current.sKey.wasPressedThisFrame && !isDefending() && !isPlayerExhausted())
         {
-            // Ducking timing is independent from update
-            StartCoroutine(DuckCoroutine());
+            if (player.consumeStamina(duckCost)) {
+                // Ducking timing is independent from update
+                StartCoroutine(DuckCoroutine());
+            }         
         }
     }
     
@@ -131,36 +140,32 @@ public class PlayerController : MonoBehaviour
     // ===== Attack =====
     private void handlePunchInput()
     {
-        if (Keyboard.current == null || isDefending() || isPlayerAttacking())
+        if (Keyboard.current == null || isDefending() || isPlayerAttacking() || isPlayerExhausted())
         {
             return;
         }
 
         if (Keyboard.current.jKey.wasPressedThisFrame) // Light Punch
         {
-            StartCoroutine(AttackCoroutine(attackDamage, settings.punch.defaultMultiplier));
+            tryStartPunch(settings.punch.defaultMultiplier,lightPunchCost);
         }
 
         else if (Keyboard.current.kKey.wasPressedThisFrame) // Medium Punch
         {
-            StartCoroutine(AttackCoroutine(attackDamage, settings.punch.mediumMultiplier));
+            tryStartPunch(settings.punch.mediumMultiplier, mediumPunchCost);
         }
 
         else if (Keyboard.current.lKey.wasPressedThisFrame) // Heavy Punch
         {
-            StartCoroutine(AttackCoroutine(attackDamage, settings.punch.heavyMultiplier));
+            tryStartPunch(settings.punch.heavyMultiplier, heavyPunchCost);
         }
     }
-    private void Attack(float damage, float multiplier)
+
+    private void tryStartPunch(float damageMultiplier, float staminaCost)
     {
-        Vector2 attackPos = (Vector2)transform.position + attackOffset;
-        Collider2D hit = Physics2D.OverlapBox(attackPos, attackBoxSize, 0f, opponentLayer);
-
-        if (hit != null) {
-            float takenDamage = damage * multiplier;
-
-            PlayerStats opponentStats = hit.GetComponent<PlayerStats>();
-            gameManager.ProcessHit(opponentStats, takenDamage);
+        if (player.consumeStamina(staminaCost))
+        {
+            StartCoroutine(AttackCoroutine(attackDamage, damageMultiplier));
         }
     }
 
@@ -173,7 +178,20 @@ public class PlayerController : MonoBehaviour
         Attack(damage, multiplier);
         player.setAttacking(false);
     }
-   
+    private void Attack(float damage, float multiplier)
+    {
+        Vector2 attackPos = (Vector2)transform.position + attackOffset;
+        Collider2D hit = Physics2D.OverlapBox(attackPos, attackBoxSize, 0f, opponentLayer);
+
+        if (hit != null)
+        {
+            float takenDamage = damage * multiplier;
+
+            PlayerStats opponentStats = hit.GetComponent<PlayerStats>();
+            gameManager.ProcessHit(opponentStats, takenDamage);
+        }
+    }
+
     //===== Condition =====
     private bool isDefending()
     {
@@ -195,14 +213,34 @@ public class PlayerController : MonoBehaviour
         return player.isAttacking;
     }
 
+    private bool isPlayerExhausted()
+    {
+        return player.isExhausted;
+    }
+
     // ===== Other =====
     private void setPlayerHitBox(float range)
     {
         float boxSize = 1f + range;
         float offset = 1f + range / 2;
 
-        attackBoxSize = new Vector2(boxSize, transform.localScale.y);
-        attackOffset = new Vector2(offset, 0f);
+        attackBoxSize = new Vector2(boxSize * facingIndex, transform.localScale.y);
+        attackOffset = new Vector2(offset * facingIndex, 0f);
+    }
+
+    // 1f (P1 - left player)
+    // -1f (P2 - right player)
+    public void setPlayerDirection(float index = 1f)
+    {
+        facingIndex = index;
+    }
+    public void SetSelfLayer(int layerIndex)
+    {
+        gameObject.layer = layerIndex;
+    }
+    public void SetOpponentLayer(LayerMask targetOpponentLayer)
+    {
+        opponentLayer = targetOpponentLayer;
     }
 
     //===== Gizmos =====

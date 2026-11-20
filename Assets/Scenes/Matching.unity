@@ -1273,7 +1273,7 @@ GameObject:
   - component: {fileID: 900100924}
   - component: {fileID: 900100925}
   m_Layer: 6
-  m_Name: Player_1
+  m_Name: Player
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1464,11 +1464,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerStats
   character: {fileID: 11400000, guid: 2dd91bbac2e97e142b361e32c03afba6, type: 2}
   health: 0
-  stamina: 0
   speed: 0
   attackDamage: 0
   attackSpeed: 0
   attackRange: 0
+  maxStamina: 0
+  currentStamina: 0
   isDucking: 0
   isBlocking: 0
   isAttacking: 0
@@ -1719,11 +1720,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerStats
   character: {fileID: 11400000, guid: 2dd91bbac2e97e142b361e32c03afba6, type: 2}
   health: 0
-  stamina: 0
   speed: 0
   attackDamage: 0
   attackSpeed: 0
   attackRange: 0
+  maxStamina: 0
+  currentStamina: 0
   isDucking: 0
   isBlocking: 0
   isAttacking: 0
@@ -2932,7 +2934,7 @@ MonoBehaviour:
   isGameEnded: 0
   graceTimer: 0
   isGracePeriod: 1
-  player1Stats: {fileID: 900100925}
+  player1Stats: {fileID: 0}
   player2Stats: {fileID: 1007657234}
 --- !u!1 &2121553107
 GameObject:

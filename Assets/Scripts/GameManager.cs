@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
 {
@@ -22,7 +21,7 @@ public class GameManager : MonoBehaviour
     void Start()
     {
         graceTimer = settings.match.grace_period;
-        timer = settings.match.duration;  
+        timer = settings.match.duration;
     }
 
     // Update is called once per frame
@@ -33,7 +32,7 @@ public class GameManager : MonoBehaviour
         if (!isGracePeriod)
         {
             runTimer();
-        }       
+        }
     }
 
     private void runGraceTimer()
@@ -43,7 +42,7 @@ public class GameManager : MonoBehaviour
             if (graceTimer > 0f)
             {
                 graceTimer -= Time.deltaTime;
-                
+
             }
             else
             {
@@ -56,7 +55,7 @@ public class GameManager : MonoBehaviour
 
     private void runTimer()
     {
-        if(!isGameEnded)
+        if (!isGameEnded)
         {
             if (timer > 0f)
             {
@@ -70,7 +69,7 @@ public class GameManager : MonoBehaviour
             }
 
             ui.displayTimer(timer);
-        } 
+        }
     }
     public void endGame()
     {
@@ -79,7 +78,7 @@ public class GameManager : MonoBehaviour
         float health_1 = player1Stats.health;
         float health_2 = player2Stats.health;
         string message = "";
-        
+
         if (health_1 > health_2)
         {
             message = "Player 1 Won";
@@ -90,7 +89,8 @@ public class GameManager : MonoBehaviour
             message = "Player 2 Won";
         }
 
-        else {
+        else
+        {
             message = "Tie";
         }
 
@@ -104,13 +104,14 @@ public class GameManager : MonoBehaviour
             return;
         }
 
-        if (target != null) {
+        if (target != null)
+        {
             if (target.isBlocking || target.isDucking)
             {
                 damage = 0f;
             }
         }
-        
+
         target.takenDamage(damage);
         updateHealthBar(target);
     }
@@ -130,6 +131,23 @@ public class GameManager : MonoBehaviour
         else if (target == player2Stats)
         {
             ui.fillSliderBasedOnValue(ui.healthSlider2, target.health);
+        }
+    }
+
+    public void onStaminaChange(PlayerStats source)
+    {
+        if (source == null)
+        {
+            return;
+        }
+
+        if (source == player1Stats)
+        {
+            ui.fillSliderBasedOnValue(ui.staminaSlider1, source.currentStamina);
+        }
+        else if (source == player2Stats)
+        {
+            ui.fillSliderBasedOnValue(ui.staminaSlider2, source.currentStamina);
         }
     }
 }

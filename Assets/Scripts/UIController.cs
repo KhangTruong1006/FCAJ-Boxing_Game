@@ -12,13 +12,13 @@ public class UIController : MonoBehaviour
 
     private void Start()
     {
-        // Player 1 Stats - Healht & Stamina
+        // Player 1 Stats - Health & Stamina
         displaySliderValueUponStart(healthSlider1, gameManager.player1Stats.health);
-        displaySliderValueUponStart(staminaSlider1, gameManager.player1Stats.stamina);
+        displaySliderValueUponStart(staminaSlider1, gameManager.player1Stats.maxStamina);
 
-        // Player 2 Stats - Healht & Stamina
+        // Player 2 Stats - Health & Stamina
         displaySliderValueUponStart(healthSlider2, gameManager.player2Stats.health);
-        displaySliderValueUponStart(staminaSlider2, gameManager.player2Stats.stamina);
+        displaySliderValueUponStart(staminaSlider2, gameManager.player2Stats.maxStamina);
     }
 
     private void displaySliderValueUponStart(Slider slider, float stat)
