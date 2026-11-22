@@ -73,10 +73,15 @@ public class GameManager : MonoBehaviour
     }
     public void endGame()
     {
+        if (isGameEnded)
+        {
+            return;
+        }
+
         isGameEnded = true;
 
-        float health_1 = player1Stats.health;
-        float health_2 = player2Stats.health;
+        float health_1 = player1Stats != null ? player1Stats.health : 0f;
+        float health_2 = player2Stats != null ? player2Stats.health : 0f;
         string message = "";
 
         if (health_1 > health_2)
@@ -94,22 +99,22 @@ public class GameManager : MonoBehaviour
             message = "Tie";
         }
 
-        ui.displayResult(message);
+        if (ui != null)
+        {
+            ui.displayResult(message);
+        }
     }
 
     public void ProcessHit(PlayerStats target, float damage)
     {
-        if (isGracePeriod)
+        if (isGracePeriod || isGameEnded || target == null)
         {
             return;
         }
 
-        if (target != null)
+        if (target.isBlocking || target.isDucking)
         {
-            if (target.isBlocking || target.isDucking)
-            {
-                damage = 0f;
-            }
+            damage = 0f;
         }
 
         target.takenDamage(damage);
