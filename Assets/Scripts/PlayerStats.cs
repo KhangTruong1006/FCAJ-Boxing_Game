@@ -28,19 +28,7 @@ public class PlayerStats : MonoBehaviour
 
     private void Awake()
     {
-        health = character.health;
-        speed = character.speed;
-
-        attackDamage = character.attackDamage;
-        attackSpeed = character.attackSpeed;
-        attackRange = character.attackRange;
-
-        maxStamina = character.stamina;
-        currentStamina = maxStamina;
-
-        staminaRegenCooldown = character.staminaRegenCooldown;
-        staminaRegenRate = character.staminaRegenRate;
-        exhaustionThreshold = character.exhaustionThreshold;
+        assignStatsFromCharacter();
 
         gameManager = Object.FindAnyObjectByType<GameManager>();
     }
@@ -55,6 +43,40 @@ public class PlayerStats : MonoBehaviour
         handleUpdateStamina();
     }
 
+    private void assignStatsFromCharacter()
+    {
+        if (character != null)
+        {
+            health = character.health;
+            speed = character.speed;
+
+            attackDamage = character.attackDamage;
+            attackSpeed = character.attackSpeed;
+            attackRange = character.attackRange;
+
+            maxStamina = character.stamina;
+            
+
+            staminaRegenCooldown = character.staminaRegenCooldown;
+            staminaRegenRate = character.staminaRegenRate;
+            exhaustionThreshold = character.exhaustionThreshold;
+        }
+
+        else
+        {
+            health = 100f;
+            speed = 5f;
+            attackDamage = 10f;
+            attackSpeed = 0.2f;
+            attackRange = 0.5f;
+            maxStamina = 100f;
+            staminaRegenCooldown = 1f;
+            staminaRegenRate = 10f;
+            exhaustionThreshold = 0.3f;
+        }
+
+        currentStamina = maxStamina;
+    }
 
     public void takenDamage(float damage)
     {
@@ -70,7 +92,7 @@ public class PlayerStats : MonoBehaviour
     private void handleUpdateStamina()
     {
         float previousStamina = currentStamina;
-        updateStaminia(Time.deltaTime);
+        updateStamina(Time.deltaTime);
 
         if (gameManager != null && !Mathf.Approximately(previousStamina, currentStamina))
         {
@@ -78,7 +100,7 @@ public class PlayerStats : MonoBehaviour
         }
     }
 
-    private void updateStaminia(float deltaTime)
+    private void updateStamina(float deltaTime)
     {
         if (regenDelayTimer > 0f)
         {
