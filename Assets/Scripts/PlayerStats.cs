@@ -6,15 +6,11 @@ public class PlayerStats : NetworkBehaviour
     [SerializeField] private CharacterObject character;
     private GameManager gameManager;
 
-    public float health;
     public float speed;
 
     public float attackDamage;
     public float attackSpeed;
     public float attackRange;
-
-    public float maxStamina;
-    public float currentStamina;
 
     public NetworkVariable<float> MaxHealth = new NetworkVariable<float>(100f);
     public NetworkVariable<float> Health = new NetworkVariable<float>(100f);
@@ -149,8 +145,6 @@ public class PlayerStats : NetworkBehaviour
             staminaRegenRate = 10f;
             exhaustionThreshold = 0.3f;
         }
-
-        currentStamina = maxStamina;
     }
 
     public void takenDamage(float damage)
@@ -161,24 +155,13 @@ public class PlayerStats : NetworkBehaviour
         }
         
         Health.Value = Mathf.Max(0f, Health.Value - damage);
-        if(health <= 0 && gameManager != null)
+        if(Health.Value <= 0 && gameManager != null)
         {
            gameManager.endGame();
         }
     }
 
     // ===== Stamina =====
-    private void handleUpdateStamina()
-    {
-        float previousStamina = currentStamina;
-        updateStamina(Time.deltaTime);
-
-        if (gameManager != null && !Mathf.Approximately(previousStamina, currentStamina))
-        {
-            //gameManager.onStaminaChange(this);
-        }
-    }
-
     private void updateStamina(float deltaTime)
     {
         if (regenDelayTimer > 0f)
