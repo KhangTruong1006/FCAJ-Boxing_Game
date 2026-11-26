@@ -12,6 +12,10 @@ public class GameManager : NetworkBehaviour
     [SerializeField] private int player1LayerIndex = 6;
     [SerializeField] private int player2LayerIndex = 7;
 
+    [Header("Spawn Points")]
+    [SerializeField] private Transform player1SpawnPoint;
+    [SerializeField] private Transform player2SpawnPoint;
+
     public NetworkVariable<float> syncedTimer = new NetworkVariable<float>(90f);
     public NetworkVariable<float> syncedGraceTimer = new NetworkVariable<float>(5f);
 
@@ -19,81 +23,37 @@ public class GameManager : NetworkBehaviour
     public NetworkVariable<bool> isGracePeriod = new NetworkVariable<bool>(true);
 
     private readonly PlayerStats[] players = new PlayerStats[2];
+    
+    public NetworkVariable<int> registeredPlayerCount = new(0);
 
     public override void OnNetworkSpawn()
     {
         if (IsServer)
         {
-            syncedTimer.Value = settings != null && settings.match != null ? settings.match.duration : 90f;
-            syncedGraceTimer.Value = settings != null && settings.match != null ? settings.match.grace_period : 5f;
+            setSyncedGraceTimer();
+            setSyncedTimer();
 
             isGameEnded.Value = false;
             isGracePeriod.Value = true;     
         }
     }
 
-    public int getNextFreeSlot()
-    {
-        if (players[0] == null)
-        {
-            return 0;
-        }
-
-        if (players[1] == null)
-        {
-            return 1;
-        }
-
-        return 0;
-    }
-
-    public void registerPlayer(int slot, PlayerStats stats)
-    {
-        if (slot < 0 || slot > 1) 
-        { 
-            return; 
-        }
-
-        players[slot] = stats;
-
-        if (IsServer && players[0] != null && players[1] != null)
-        {
-            ConfigureBothPlayers();
-        }
-    }
-
-    internal void unregisterPlayer(int slot, PlayerStats stats)
-    {
-        if (slot < 0 || slot > 1) { 
-            return; 
-        }
-        if (players[slot] == stats)
-        {
-            players[slot] = null;
-        }
-    }
-    private void ConfigureBothPlayers()
-    {
-        PlayerController p1Ctrl = players[0].GetComponent<PlayerController>();
-        PlayerController p2Ctrl = players[1].GetComponent<PlayerController>();
-
-        if (p1Ctrl != null)
-        {
-            p1Ctrl.configurePlayersDirectionRpc(player1LayerIndex, 1 << player2LayerIndex, 1f);
-        }
-
-        if (p2Ctrl != null)
-        {
-            p2Ctrl.configurePlayersDirectionRpc(player2LayerIndex, 1 << player1LayerIndex, -1f);
-        }
-    }
-
     // Update is called once per frame
     void Update()
     {
-        if(ui != null)
+        if (!IsSpawned)
         {
-            if (isGracePeriod.Value)
+            return;
+        }
+
+        if (ui != null)
+        {
+            if (isGracePeriod.Value && !areBothPlayersRegistered())
+            {
+                ui.displayWaitingForPlayers();
+            }
+
+            else if (isGracePeriod.Value)
             {
                 ui.displayTimer(syncedGraceTimer.Value);
             }
@@ -119,7 +79,7 @@ public class GameManager : NetworkBehaviour
 
     private void runGraceTimer()
     {
-        if (!isGracePeriod.Value)
+        if (!isGracePeriod.Value || !areBothPlayersRegistered())
         {
             return;
         }
@@ -161,8 +121,8 @@ public class GameManager : NetworkBehaviour
 
         isGameEnded.Value = true;
 
-        float health_1 = players[0] != null ? players[0].Health.Value : 0f;
-        float health_2 = players[1] != null ? players[1].Health.Value : 0f;
+        float health_1 = getPlayerHealth(0);
+        float health_2 = getPlayerHealth(1);
         string message = "";
 
         if (health_1 > health_2)
@@ -180,10 +140,11 @@ public class GameManager : NetworkBehaviour
             message = "Tie";
         }
 
-        if (ui != null)
-        {
-            showResultClientRpc(message);
-        }
+        showResultClientRpc(message);
+    }
+
+    private float getPlayerHealth(int index) { 
+        return players[index] != null ? players[index].Health.Value : 0f;
     }
 
     [Rpc(SendTo.ClientsAndHost)]
@@ -209,12 +170,34 @@ public class GameManager : NetworkBehaviour
 
         target.takenDamage(damage);
     }
-
+    // ===== Condition =====
     public bool isGameEndedOrGracePeriod()
     {
         return isGameEnded.Value || isGracePeriod.Value;
     }
 
+    private bool areBothPlayersRegistered()
+    {
+        return registeredPlayerCount.Value == 2;
+    }
+
+    // ===== Helpers =====
+    private void setSyncedGraceTimer()
+    {
+        syncedGraceTimer.Value = settings != null && settings.match != null ? settings.match.grace_period : 5f;
+    }
+
+    private void setSyncedTimer()
+    {
+        syncedTimer.Value = settings != null && settings.match != null ? settings.match.duration : 90f;
+    }
+
+    public Transform getSpawnPoint(int slot)
+    {
+        return slot == 0 ? player1SpawnPoint : player2SpawnPoint;
+    }
+
+    // ===== UI Synchronization =====
     public void syncHealthUI(int slot, float currentHealth, float maxHealth)
     {
         if (ui == null) return;
@@ -244,6 +227,127 @@ public class GameManager : NetworkBehaviour
         {
             ui.staminaSlider2.maxValue = maxStamina;
             ui.fillSliderBasedOnValue(ui.staminaSlider2, currentStamina);
+        }
+    }
+
+    // ===== Player Registration =====
+    public int getNextFreeSlot()
+    {
+        if (players[0] == null)
+        {
+            return 0;
+        }
+
+        if (players[1] == null)
+        {
+            return 1;
+        }
+
+        return 0;
+    }
+
+    public void registerPlayer(int slot, PlayerStats stats)
+    {
+        if (!IsServer ||slot < 0 || slot > 1)
+        {
+            return;
+        }
+
+        if (players[slot] != null) {
+            return;
+        }
+        players[slot] = stats;
+
+        UpdatePlayerCount();
+    }
+    private void UpdatePlayerCount()
+    {
+        int count = 0;
+
+        foreach (PlayerStats player in players)
+        {
+            if (player != null)
+            {
+                count++;
+            }
+        }
+
+        registeredPlayerCount.Value = count;
+    }
+
+    public void unregisterPlayer(int slot, PlayerStats stats)
+    {
+        if (!IsServer || slot < 0 || slot > 1)
+        {
+            return;
+        }
+        if (players[slot] != stats)
+        {
+            return;
+        }
+
+        players[slot] = null;
+
+        UpdatePlayerCount();
+
+        if (registeredPlayerCount.Value == 0)
+        {
+            resetMatch();
+            return;
+        }
+
+        if (isGameEnded.Value)
+        {
+            return;
+        }
+
+        if (isGracePeriod.Value)
+        {
+            setSyncedGraceTimer();
+        }
+        else
+        {
+            int winnerSlot = slot == 0 ? 1 : 0;
+
+            isGameEnded.Value = true;
+
+            showResultClientRpc(
+                $"Player {winnerSlot + 1} Won\nOpponent disconnected."
+            );
+        }
+    }
+
+    private void resetMatch()
+    {
+        if (!IsServer)
+        {
+            return;
+        }
+
+        isGameEnded.Value = false;
+        isGracePeriod.Value = true;
+
+        setSyncedGraceTimer();
+        setSyncedTimer();
+    }
+    public void configurePlayer(PlayerController controller, int slot)
+    {
+        if (controller == null || slot < 0 || slot > 1)
+        {
+            return;
+        }
+
+        if (slot == 0)
+        {
+            controller.SetSelfLayer(player1LayerIndex);
+            controller.SetOpponentLayer(1 << player2LayerIndex);
+            controller.setPlayerDirection(1f);
+        }
+        else
+        {
+            controller.SetSelfLayer(player2LayerIndex);
+            controller.SetOpponentLayer(1 << player1LayerIndex);
+            controller.setPlayerDirection(-1f);
         }
     }
 }
