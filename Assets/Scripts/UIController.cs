@@ -10,7 +10,7 @@ public class UIController : MonoBehaviour
     [SerializeField] private GameManager gameManager;
     [SerializeField] private TextMeshProUGUI timerText, resultText;
 
-    private void Start()
+    private void Awake()
     {
         // Player 1 Stats - Health & Stamina
         if (healthSlider1 != null) 
@@ -63,6 +63,13 @@ public class UIController : MonoBehaviour
         if (resultText != null) {
             resultText.text = message;
             resultPanel.SetActive(true);
+        }
+    }
+    public void displayWaitingForPlayers()
+    {
+        if (timerText != null)
+        {
+            timerText.text = "Waitings...";
         }
     }
 }
