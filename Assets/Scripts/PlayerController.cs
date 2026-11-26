@@ -62,12 +62,37 @@ public class PlayerController : NetworkBehaviour
         initialCharacterStats();
         initialSettings();
 
-        bool isRightSide = player != null && player.playerSlot == 1;
-        setPlayerDirection(isRightSide? -1f: 1f);
+        if (player != null)
+        {
+            player.SyncedSlot.OnValueChanged += handleSlotChanged;
+
+            handleSlotChanged(-1, player.playerSlot);
+        }
+    }
+
+    private void handleSlotChanged(int previousValue, int newValue)
+    {
+        if (gameManager != null)
+        {
+            gameManager.configurePlayer(this, newValue);
+        }
+    }
+
+    public override void OnNetworkDespawn()
+    {
+        if (player != null)
+        {
+            player.SyncedSlot.OnValueChanged -= handleSlotChanged;
+        }
     }
 
     private void Update()
     {
+        if (!IsSpawned)
+        {
+            return;
+        }
+
         if (gameManager != null && gameManager.isGameEndedOrGracePeriod()) {
             localMovementInput = 0f;
 
