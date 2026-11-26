@@ -27,7 +27,9 @@ public class PlayerStats : NetworkBehaviour
     public bool isAttacking { get; private set; }
     public bool isExhausted { get; private set; }
 
-    public int playerSlot { get; private set; } = -1;
+    public NetworkVariable<int> SyncedSlot = new(-1);
+
+    public int playerSlot => SyncedSlot.Value;
 
     private void Awake()
     {
@@ -41,47 +43,41 @@ public class PlayerStats : NetworkBehaviour
         {
             gameManager = Object.FindAnyObjectByType<GameManager>();
         }
-        
-        playerSlot = (int)OwnerClientId;
-        
-        if(playerSlot > 1 && gameManager != null)
-        {
-            playerSlot = gameManager.getNextFreeSlot();
-        }
-
-        if(gameManager != null)
-        {
-            gameManager.registerPlayer(playerSlot, this);
-        }
 
         if (IsServer)
         {
-            MaxHealth.Value = character != null? character.health : 100f;
+            NetworkSession session = NetworkManager.GetComponent<NetworkSession>();
+
+            SyncedSlot.Value = session.getReservedSlot(OwnerClientId);
+
+            MaxHealth.Value = character != null ? character.health : 100f;
             MaxStamina.Value = character != null ? character.stamina : 100f;
 
             Health.Value = MaxHealth.Value;
             CurrentStamina.Value = MaxStamina.Value;
+
+            if (gameManager != null)
+            {
+                gameManager.registerPlayer(playerSlot, this);
+            }
         }
 
         Health.OnValueChanged += HandleHealthChanged;
         CurrentStamina.OnValueChanged += HandleStaminaChanged;
+        SyncedSlot.OnValueChanged += HandleSlotChanged;
 
-        if (gameManager != null)
-        {
-            gameManager.syncHealthUI(playerSlot, Health.Value, MaxHealth.Value);
-            gameManager.syncStaminaUI(playerSlot, CurrentStamina.Value, MaxStamina.Value);
-        }
+        RefreshStatsUI();
     }
 
     public override void OnNetworkDespawn()
     {
         Health.OnValueChanged -= HandleHealthChanged;
         CurrentStamina.OnValueChanged -= HandleStaminaChanged;
+        SyncedSlot.OnValueChanged -= HandleSlotChanged;
 
-        if (gameManager != null)
-
+        if (IsServer && gameManager != null && gameManager.IsSpawned && !NetworkManager.ShutdownInProgress)
         {
-            gameManager.unregisterPlayer(playerSlot, this); ;
+            gameManager.unregisterPlayer(playerSlot, this);
         }
     }
 
@@ -101,7 +97,30 @@ public class PlayerStats : NetworkBehaviour
         }
     }
 
+    private void HandleSlotChanged(int previousValue, int newValue)
+    {
+        RefreshStatsUI();
+    }
 
+    private void RefreshStatsUI()
+    {
+        if (gameManager == null || playerSlot < 0)
+        {
+            return;
+        }
+
+        gameManager.syncHealthUI(
+            playerSlot,
+            Health.Value,
+            MaxHealth.Value
+        );
+
+        gameManager.syncStaminaUI(
+            playerSlot,
+            CurrentStamina.Value,
+            MaxStamina.Value
+        );
+    }
     private void Update()
     {
         if (!IsServer)
