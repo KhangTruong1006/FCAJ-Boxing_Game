@@ -131,7 +131,6 @@ GameObject:
   - component: {fileID: 146907052}
   - component: {fileID: 146907051}
   - component: {fileID: 146907053}
-  - component: {fileID: 146907054}
   m_Layer: 0
   m_Name: NetworkManager
   m_TagString: Untagged
@@ -229,23 +228,6 @@ MonoBehaviour:
   RunInBackground: 1
   LogLevel: 1
 --- !u!114 &146907053
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 146907049}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a372279059c6b62468d4e5958d80ab20, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::NetworkSession
-  mainScene: Mainscreen
-  matchScene: Matching
-  serverAddress: 127.0.0.1
-  serverPort: 7777
-  runAsServerInEditor: 1
---- !u!114 &146907054
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
