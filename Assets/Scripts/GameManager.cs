@@ -38,7 +38,6 @@ public class GameManager : NetworkBehaviour
         }
     }
 
-    // Update is called once per frame
     void Update()
     {
         if (!IsSpawned)
@@ -46,23 +45,7 @@ public class GameManager : NetworkBehaviour
             return;
         }
 
-        if (ui != null)
-        {
-            if (isGracePeriod.Value && !areBothPlayersRegistered())
-            {
-                ui.displayWaitingForPlayers();
-            }
-
-            else if (isGracePeriod.Value)
-            {
-                ui.displayTimer(syncedGraceTimer.Value);
-            }
-
-            else 
-            {
-                ui.displayTimer(syncedTimer.Value);
-            }
-        }
+        handleTimerDisplay();
 
         if (!IsServer)
         {
@@ -77,6 +60,7 @@ public class GameManager : NetworkBehaviour
         }
     }
 
+    // ===== Timer =====
     private void runGraceTimer()
     {
         if (!isGracePeriod.Value || !areBothPlayersRegistered())
@@ -112,6 +96,8 @@ public class GameManager : NetworkBehaviour
             endGame();
         }
     }
+
+    // ===== Procssing =====
     public void endGame()
     {
         if (!IsServer || isGameEnded.Value)
@@ -123,40 +109,12 @@ public class GameManager : NetworkBehaviour
 
         float health_1 = getPlayerHealth(0);
         float health_2 = getPlayerHealth(1);
-        string message = "";
-
-        if (health_1 > health_2)
-        {
-            message = "Player 1 Won";
-        }
-
-        else if (health_1 < health_2)
-        {
-            message = "Player 2 Won";
-        }
-
-        else
-        {
-            message = "Tie";
-        }
+        string message = getResultMessage(health_1, health_2);
 
         showResultClientRpc(message);
     }
 
-    private float getPlayerHealth(int index) { 
-        return players[index] != null ? players[index].Health.Value : 0f;
-    }
-
-    [Rpc(SendTo.ClientsAndHost)]
-    private void showResultClientRpc(string message)
-    {
-        if (ui != null)
-        {
-            ui.displayResult(message);
-        }
-    }
-
-    public void ProcessHit(PlayerStats target, float damage)
+    public void processHit(PlayerStats target, float damage)
     {
         if (isGameEndedOrGracePeriod() || target == null)
         {
@@ -197,7 +155,50 @@ public class GameManager : NetworkBehaviour
         return slot == 0 ? player1SpawnPoint : player2SpawnPoint;
     }
 
-    // ===== UI Synchronization =====
+    private float getPlayerHealth(int index)
+    {
+        return players[index] != null ? players[index].Health.Value : 0f;
+    }
+
+    private string getResultMessage(float health_1, float health_2)
+    {
+        if (health_1 > health_2)
+        {
+            return "Player 1 Won";
+        }
+
+        else if (health_1 < health_2)
+        {
+            return "Player 2 Won";
+        }
+
+        return "Tie";
+    }
+
+    // ===== UI =====
+    // Timer display
+    private void handleTimerDisplay()
+    {
+        if (ui != null)
+        {
+            if (isGracePeriod.Value && !areBothPlayersRegistered())
+            {
+                ui.displayWaitingForPlayers();
+            }
+
+            else if (isGracePeriod.Value)
+            {
+                ui.displayTimer(syncedGraceTimer.Value);
+            }
+
+            else
+            {
+                ui.displayTimer(syncedTimer.Value);
+            }
+        }
+    }
+
+    // Synchronization
     public void syncHealthUI(int slot, float currentHealth, float maxHealth)
     {
         if (ui == null) return;
@@ -230,21 +231,17 @@ public class GameManager : NetworkBehaviour
         }
     }
 
-    // ===== Player Registration =====
-    public int getNextFreeSlot()
+    // Other
+    [Rpc(SendTo.ClientsAndHost)]
+    private void showResultClientRpc(string message)
     {
-        if (players[0] == null)
+        if (ui != null)
         {
-            return 0;
+            ui.displayResult(message);
         }
-
-        if (players[1] == null)
-        {
-            return 1;
-        }
-
-        return 0;
     }
+
+    // ===== Player Registration =====
 
     public void registerPlayer(int slot, PlayerStats stats)
     {
