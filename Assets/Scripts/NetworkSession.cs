@@ -77,6 +77,7 @@ public class NetworkSession : MonoBehaviour
         }
     }
 
+    // ===== Match =====
     public void joinMatch()
     {
         if(network.IsListening || network.ShutdownInProgress)
@@ -98,6 +99,7 @@ public class NetworkSession : MonoBehaviour
         }
     }
 
+    // ===== Handle Connection =====
     private void handleDisconnect(ulong clientId) 
     {
         if (serverMode) 
