@@ -40,6 +40,8 @@ public class PlayerController : NetworkBehaviour
     private float mediumDamageMultiplier;
     private float heavyDamageMultiplier;
 
+    private bool isMenuOpen;
+
     private void Awake()
     {
         body = GetComponent<Rigidbody2D>();
@@ -106,6 +108,12 @@ public class PlayerController : NetworkBehaviour
 
         if (IsOwner)
         {
+            handleOpenMenu();
+
+            if (isMenuOpen) { 
+                return;
+            }
+
             handleMovementInput();
             handleBlockingInput();
             handlePunchInput();
@@ -135,7 +143,27 @@ public class PlayerController : NetworkBehaviour
 
         body.linearVelocity = vector;
     }
-    
+
+    // ===== Menu =====
+    private void handleOpenMenu()
+    {
+        if (PauseMenuController.isOpen)
+        {
+            if (!isMenuOpen)
+            {
+                localMovementInput = 0f;
+
+                SubmitMovementServerRpc(0f);
+                setBlockingServerRpc(false);
+            }
+
+            isMenuOpen = true;
+            return;
+        }
+
+        isMenuOpen = false;
+    }
+
     // ===== Movement =====
     private void handleMovementInput()
     {
@@ -295,7 +323,7 @@ public class PlayerController : NetworkBehaviour
             if (opponentStats != null && opponentStats != player && gameManager != null)
             {
                 float takenDamage = damage * multiplier;
-                gameManager.ProcessHit(opponentStats, takenDamage);
+                gameManager.processHit(opponentStats, takenDamage);
             }
         }
     }
