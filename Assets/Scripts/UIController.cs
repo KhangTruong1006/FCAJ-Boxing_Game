@@ -10,21 +10,28 @@ public class UIController : MonoBehaviour
     [SerializeField] private GameManager gameManager;
     [SerializeField] private TextMeshProUGUI timerText, resultText;
 
-    private void Start()
+    private void Awake()
     {
         // Player 1 Stats - Health & Stamina
-        if (gameManager != null && gameManager.player1Stats != null)
+        if (healthSlider1 != null) 
+        { 
+            displaySliderValueUponStart(healthSlider1, 100f); 
+        }
+        if (staminaSlider1 != null)
         {
-            displaySliderValueUponStart(healthSlider1, gameManager.player1Stats.health);
-            displaySliderValueUponStart(staminaSlider1, gameManager.player1Stats.maxStamina);
+            displaySliderValueUponStart(staminaSlider1, 100f);
         }
 
         // Player 2 Stats - Health & Stamina
-        if (gameManager != null && gameManager.player2Stats != null)
-        {
-            displaySliderValueUponStart(healthSlider2, gameManager.player2Stats.health);
-            displaySliderValueUponStart(staminaSlider2, gameManager.player2Stats.maxStamina);
-        }     
+        if (healthSlider2 != null) 
+        { 
+            displaySliderValueUponStart(healthSlider2, 100f); 
+        }
+        if (staminaSlider2 != null)
+        { 
+            displaySliderValueUponStart(staminaSlider2, 100f); 
+        }
+
     }
 
     private void displaySliderValueUponStart(Slider slider, float stat)
@@ -56,6 +63,13 @@ public class UIController : MonoBehaviour
         if (resultText != null) {
             resultText.text = message;
             resultPanel.SetActive(true);
+        }
+    }
+    public void displayWaitingForPlayers()
+    {
+        if (timerText != null)
+        {
+            timerText.text = "Waitings...";
         }
     }
 }

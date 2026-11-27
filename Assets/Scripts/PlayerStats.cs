@@ -1,61 +1,111 @@
+using Unity.Netcode;
 using UnityEngine;
 
-public class PlayerStats : MonoBehaviour
+public class PlayerStats : NetworkBehaviour
 {
     [SerializeField] private CharacterObject character;
     private GameManager gameManager;
 
-    public float health;
     public float speed;
 
     public float attackDamage;
     public float attackSpeed;
     public float attackRange;
 
-    public float maxStamina;
-    public float currentStamina;
+    public NetworkVariable<float> MaxHealth = new NetworkVariable<float>(100f);
+    public NetworkVariable<float> Health = new NetworkVariable<float>(100f);
+    public NetworkVariable<float> MaxStamina = new NetworkVariable<float>(100f);
+    public NetworkVariable<float> CurrentStamina = new NetworkVariable<float>(100f);
 
     private float regenDelayTimer;
     private float staminaRegenCooldown;
     private float staminaRegenRate;
     [Range(0.1f, 1f)]private float exhaustionThreshold;
 
-    public bool isDucking;
-    public bool isBlocking;
-    public bool isAttacking;
+    public bool isDucking { get; private set; }
+    public bool isBlocking { get; private set; }
+    public bool isAttacking { get; private set; }
+    public bool isExhausted { get; private set; }
 
-    public bool isExhausted;
+    public NetworkVariable<int> SyncedSlot = new(-1);
+
+    public int playerSlot => SyncedSlot.Value;
 
     private void Awake()
     {
-        assignStatsFromCharacter();
-
         gameManager = Object.FindAnyObjectByType<GameManager>();
+        assignLocalStatsFromCharacter();       
+    }
+
+    public override void OnNetworkSpawn()
+    {
+        if(gameManager == null)
+        {
+            gameManager = Object.FindAnyObjectByType<GameManager>();
+        }
+
+        if (IsServer)
+        {
+            NetworkSession session = NetworkManager.GetComponent<NetworkSession>();
+
+            SyncedSlot.Value = session.getReservedSlot(OwnerClientId);
+
+            MaxHealth.Value = character != null ? character.health : 100f;
+            MaxStamina.Value = character != null ? character.stamina : 100f;
+
+            Health.Value = MaxHealth.Value;
+            CurrentStamina.Value = MaxStamina.Value;
+
+            if (gameManager != null)
+            {
+                gameManager.registerPlayer(playerSlot, this);
+            }
+        }
+
+        Health.OnValueChanged += handleHealthChanged;
+        CurrentStamina.OnValueChanged += handleStaminaChanged;
+        SyncedSlot.OnValueChanged += handleSlotChanged;
+
+        RefreshStatsUI();
+    }
+
+    public override void OnNetworkDespawn()
+    {
+        Health.OnValueChanged -= handleHealthChanged;
+        CurrentStamina.OnValueChanged -= handleStaminaChanged;
+        SyncedSlot.OnValueChanged -= handleSlotChanged;
+
+        if (IsServer && gameManager != null && gameManager.IsSpawned && !NetworkManager.ShutdownInProgress)
+        {
+            gameManager.unregisterPlayer(playerSlot, this);
+        }
     }
 
     private void Update()
     {
+        if (!IsServer)
+        {
+            return;
+        }
+        
         if (gameManager != null && gameManager.isGameEndedOrGracePeriod())
         {
             return;
         }
         
-        handleUpdateStamina();
+        updateStamina(Time.deltaTime);
     }
 
-    private void assignStatsFromCharacter()
+    private void assignLocalStatsFromCharacter()
     {
         if (character != null)
         {
-            health = character.health;
+
             speed = character.speed;
 
             attackDamage = character.attackDamage;
             attackSpeed = character.attackSpeed;
             attackRange = character.attackRange;
-
-            maxStamina = character.stamina;
-            
 
             staminaRegenCooldown = character.staminaRegenCooldown;
             staminaRegenRate = character.staminaRegenRate;
@@ -64,42 +114,33 @@ public class PlayerStats : MonoBehaviour
 
         else
         {
-            health = 100f;
             speed = 5f;
+
             attackDamage = 10f;
             attackSpeed = 0.2f;
             attackRange = 0.5f;
-            maxStamina = 100f;
+;
             staminaRegenCooldown = 1f;
             staminaRegenRate = 10f;
             exhaustionThreshold = 0.3f;
         }
-
-        currentStamina = maxStamina;
     }
 
     public void takenDamage(float damage)
     {
-        health -= damage;
-        if(health <= 0)
+        if(!IsServer) 
+        { 
+            return; 
+        }
+        
+        Health.Value = Mathf.Max(0f, Health.Value - damage);
+        if(Health.Value <= 0 && gameManager != null)
         {
-           health = 0;
            gameManager.endGame();
         }
     }
 
     // ===== Stamina =====
-    private void handleUpdateStamina()
-    {
-        float previousStamina = currentStamina;
-        updateStamina(Time.deltaTime);
-
-        if (gameManager != null && !Mathf.Approximately(previousStamina, currentStamina))
-        {
-            gameManager.onStaminaChange(this);
-        }
-    }
-
     private void updateStamina(float deltaTime)
     {
         if (regenDelayTimer > 0f)
@@ -115,9 +156,9 @@ public class PlayerStats : MonoBehaviour
             return;
         }
 
-        currentStamina = Mathf.Min(maxStamina, currentStamina + staminaRegenRate * multiplier * deltaTime);
+        CurrentStamina.Value = Mathf.Min(MaxStamina.Value, CurrentStamina.Value + staminaRegenRate * multiplier * deltaTime);
 
-        if (isExhausted && currentStamina >= maxStamina * exhaustionThreshold)
+        if (isExhausted && CurrentStamina.Value >= MaxStamina.Value * exhaustionThreshold)
         {
             isExhausted = false;
         }
@@ -125,22 +166,17 @@ public class PlayerStats : MonoBehaviour
 
     public bool consumeStamina(float amount)
     {
-        if (isExhausted || currentStamina < amount)
+        if (!IsServer || isExhausted || CurrentStamina.Value < amount)
         {
             return false;
         }
 
-        currentStamina = Mathf.Max(0f, currentStamina - amount);
+        CurrentStamina.Value = Mathf.Max(0f, CurrentStamina.Value - amount);
         regenDelayTimer = staminaRegenCooldown;
 
-        if (currentStamina <= 0f)
+        if (CurrentStamina.Value <= 0f)
         {
             isExhausted = true;
-        }
-
-        if (gameManager != null)
-        {
-            gameManager.onStaminaChange(this);
         }
 
         return true;
@@ -189,5 +225,47 @@ public class PlayerStats : MonoBehaviour
     public void setAttacking(bool attacking)
     {
         isAttacking = attacking;
+    }
+
+    // ===== UI =====
+    private void handleHealthChanged(float previousValue, float newValue)
+    {
+        if (gameManager != null)
+        {
+            gameManager.syncHealthUI(playerSlot, newValue, MaxHealth.Value);
+        }
+    }
+
+    private void handleStaminaChanged(float previousValue, float newValue)
+    {
+        if (gameManager != null)
+        {
+            gameManager.syncStaminaUI(playerSlot, newValue, MaxStamina.Value);
+        }
+    }
+
+    private void handleSlotChanged(int previousValue, int newValue)
+    {
+        RefreshStatsUI();
+    }
+
+    private void RefreshStatsUI()
+    {
+        if (gameManager == null || playerSlot < 0)
+        {
+            return;
+        }
+
+        gameManager.syncHealthUI(
+            playerSlot,
+            Health.Value,
+            MaxHealth.Value
+        );
+
+        gameManager.syncStaminaUI(
+            playerSlot,
+            CurrentStamina.Value,
+            MaxStamina.Value
+        );
     }
 }

@@ -1,7 +1,9 @@
+using System.Security.Cryptography;
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class PlayerController : MonoBehaviour
+public class PlayerController : NetworkBehaviour
 {
     private Rigidbody2D body;
     private BoxCollider2D boxCollider;
@@ -15,7 +17,8 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private PlayerStats player;
     [SerializeField] private Setting settings;
 
-    private float movementInput;
+    private float serverMovementInput;
+    private float localMovementInput;
     private float facingIndex = 1f;
 
     private Vector2 attackBoxSize;
@@ -37,6 +40,8 @@ public class PlayerController : MonoBehaviour
     private float mediumDamageMultiplier;
     private float heavyDamageMultiplier;
 
+    private bool isMenuOpen;
+
     private void Awake()
     {
         body = GetComponent<Rigidbody2D>();
@@ -49,40 +54,88 @@ public class PlayerController : MonoBehaviour
         gameManager = Object.FindAnyObjectByType<GameManager>();
     }
 
-    private void Start()
+    public override void OnNetworkSpawn()
     {
+        if(gameManager == null)
+        {
+            gameManager = Object.FindAnyObjectByType<GameManager>();
+        }
+
         initialCharacterStats();
         initialSettings();
-        setPlayerDirection(facingIndex);
+
+        if (player != null)
+        {
+            player.SyncedSlot.OnValueChanged += handleSlotChanged;
+
+            handleSlotChanged(-1, player.playerSlot);
+        }
+    }
+
+    private void handleSlotChanged(int previousValue, int newValue)
+    {
+        if (gameManager != null)
+        {
+            gameManager.configurePlayer(this, newValue);
+        }
+    }
+
+    public override void OnNetworkDespawn()
+    {
+        if (player != null)
+        {
+            player.SyncedSlot.OnValueChanged -= handleSlotChanged;
+        }
     }
 
     private void Update()
     {
-        movementInput = 0f;
-
-        if (gameManager != null && gameManager.isGameEndedOrGracePeriod()) { 
+        if (!IsSpawned)
+        {
             return;
         }
 
-        handleVerticalMovementInput();
-        handleBlockingInput();
-        handlePunchInput();
-        handleDuckingInput();
+        if (gameManager != null && gameManager.isGameEndedOrGracePeriod()) {
+            localMovementInput = 0f;
+
+            if (IsServer)
+            {
+                serverMovementInput = 0f;
+            }
+            
+            return;
+        }
+
+        if (IsOwner)
+        {
+            handleOpenMenu();
+
+            if (isMenuOpen) { 
+                return;
+            }
+
+            handleMovementInput();
+            handleBlockingInput();
+            handlePunchInput();
+            handleDuckingInput();
+        }    
     }
 
     // Prevent Jittering
     private void FixedUpdate()
     {
-        if(body == null)
+        if(!IsServer || body == null)
         {
             return;
         }
 
         if (gameManager != null && gameManager.isGameEndedOrGracePeriod())
         {
+            body.linearVelocity = new Vector2(0f, body.linearVelocity.y); // Stop sliding when the gamme ends
             return;
         }
-        Vector2 vector = new Vector2(movementInput * speed, body.linearVelocity.y);
+        Vector2 vector = new Vector2(serverMovementInput * speed, body.linearVelocity.y);
+
         if(isPlayerBlocking() || isPlayerExhausted())
         {
             vector.x /= 2f; //  Slow down movement when blocking
@@ -90,54 +143,113 @@ public class PlayerController : MonoBehaviour
 
         body.linearVelocity = vector;
     }
-    
-    // ===== Movement =====
-    private void handleVerticalMovementInput()
+
+    // ===== Menu =====
+    private void handleOpenMenu()
     {
-        if(Keyboard.current == null)
+        if (PauseMenuController.isOpen)
         {
+            if (!isMenuOpen)
+            {
+                localMovementInput = 0f;
+
+                SubmitMovementServerRpc(0f);
+                setBlockingServerRpc(false);
+            }
+
+            isMenuOpen = true;
             return;
         }
-        if (Keyboard.current.aKey.isPressed) // Left
+
+        isMenuOpen = false;
+    }
+
+    // ===== Movement =====
+    private void handleMovementInput()
+    {
+        float nextInput = 0;
+        
+        if(Keyboard.current != null)
         {
-            movementInput -= 1f;
+            if (Keyboard.current.aKey.isPressed) // Left
+            {
+                nextInput -= 1f;
+            }
+            else if (Keyboard.current.dKey.isPressed) // Right
+            {
+                nextInput += 1f;
+            }
         }
-        else if (Keyboard.current.dKey.isPressed) // Right
+
+        if (!Mathf.Approximately(nextInput, localMovementInput))
         {
-            movementInput += 1f;
+            localMovementInput = nextInput;
+            SubmitMovementServerRpc(localMovementInput);
         }
+        
+    }
+
+    [Rpc(SendTo.Server)]
+    private void SubmitMovementServerRpc(float input)
+    {
+        serverMovementInput = Mathf.Clamp(input, -1f, 1f);
     }
 
 
     // ===== Defense =====
+    // Blocking
     private void handleBlockingInput()
     {
-        if (Keyboard.current == null || player == null || isPlayerDucking())
+        if (Keyboard.current == null || player == null)
         {
             return;
         }
 
-        if (Keyboard.current.spaceKey.wasPressedThisFrame) // Blocking
+        if (Keyboard.current.spaceKey.wasPressedThisFrame && !isPlayerDucking()) // Blocking
         {
-            player.setBlocking(true);
+            setBlockingServerRpc(true);
         }
         else if (Keyboard.current.spaceKey.wasReleasedThisFrame)
         {
-            player.setBlocking(false);
+            setBlockingServerRpc(false);
         }
     }
 
+    [Rpc(SendTo.Server)]
+    private void setBlockingServerRpc(bool blocking)
+    {
+        if(player != null && player.isDucking)
+        {
+            return;
+        }
+
+        player.setBlocking(blocking);
+    }
+
+    // Ducking
     private void handleDuckingInput()
     {
         if (Keyboard.current != null && player != null && Keyboard.current.sKey.wasPressedThisFrame && !isDefending() && !isPlayerExhausted())
         {
-            if (player.consumeStamina(duckCost)) {
-                // Ducking timing is independent from update
-                StartCoroutine(DuckCoroutine());
-            }         
+            requestDuckingServerRpc();
         }
     }
-    
+
+    [Rpc(SendTo.Server)]
+    private void requestDuckingServerRpc()
+    {
+        if (player == null || isDefending() || isPlayerExhausted() || isPlayerAttacking()) 
+        { 
+            return; 
+        }
+
+        if (player.consumeStamina(duckCost))
+        {
+            // Ducking timing is independent from update
+            StartCoroutine(DuckCoroutine());
+        }
+    }
+
     private System.Collections.IEnumerator DuckCoroutine()
     {
         player.setDucking(true);
@@ -159,22 +271,28 @@ public class PlayerController : MonoBehaviour
 
         if (Keyboard.current.jKey.wasPressedThisFrame) // Light Punch
         {
-            tryStartPunch(defaultDamageMultiplier, lightPunchCost);
+            requestPunchServerRpc(defaultDamageMultiplier, lightPunchCost);
         }
 
         else if (Keyboard.current.kKey.wasPressedThisFrame) // Medium Punch
         {
-            tryStartPunch(mediumDamageMultiplier, mediumPunchCost);
+            requestPunchServerRpc(mediumDamageMultiplier, mediumPunchCost);
         }
 
         else if (Keyboard.current.lKey.wasPressedThisFrame) // Heavy Punch
         {
-            tryStartPunch(heavyDamageMultiplier, heavyPunchCost);
+            requestPunchServerRpc(heavyDamageMultiplier, heavyPunchCost);
         }
     }
 
-    private void tryStartPunch(float damageMultiplier, float staminaCost)
+    [Rpc(SendTo.Server)]
+    private void requestPunchServerRpc(float damageMultiplier, float staminaCost)
     {
+        if (player == null || isDefending() || isPlayerAttacking() || isPlayerExhausted())
+        {
+            return;
+        }
+
         if (player.consumeStamina(staminaCost))
         {
             StartCoroutine(AttackCoroutine(attackDamage, damageMultiplier));
@@ -187,7 +305,10 @@ public class PlayerController : MonoBehaviour
 
         yield return new WaitForSeconds(attackSpeed);
 
-        Attack(damage, multiplier);
+        if (gameManager != null && !gameManager.isGameEndedOrGracePeriod())
+        {
+            Attack(damage, multiplier);
+        }
         player.setAttacking(false);
     }
     private void Attack(float damage, float multiplier)
@@ -202,7 +323,7 @@ public class PlayerController : MonoBehaviour
             if (opponentStats != null && opponentStats != player && gameManager != null)
             {
                 float takenDamage = damage * multiplier;
-                gameManager.ProcessHit(opponentStats, takenDamage);
+                gameManager.processHit(opponentStats, takenDamage);
             }
         }
     }
@@ -299,6 +420,14 @@ public class PlayerController : MonoBehaviour
     public void SetOpponentLayer(LayerMask targetOpponentLayer)
     {
         opponentLayer = targetOpponentLayer;
+    }
+
+    [Rpc(SendTo.Everyone)]
+    public void configurePlayersDirectionRpc(int selfLayerIndex, int opponentLayerMaskValue, float directionIndex)
+    {
+        SetSelfLayer(selfLayerIndex);
+        SetOpponentLayer(opponentLayerMaskValue);
+        setPlayerDirection(directionIndex);
     }
 
     //===== Gizmos =====
