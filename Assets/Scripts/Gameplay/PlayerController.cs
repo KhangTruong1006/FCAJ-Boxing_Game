@@ -271,26 +271,50 @@ public class PlayerController : NetworkBehaviour
 
         if (Keyboard.current.jKey.wasPressedThisFrame) // Light Punch
         {
-            requestPunchServerRpc(defaultDamageMultiplier, lightPunchCost);
+            requestPunchServerRpc(PunchType.Light);
         }
 
         else if (Keyboard.current.kKey.wasPressedThisFrame) // Medium Punch
         {
-            requestPunchServerRpc(mediumDamageMultiplier, mediumPunchCost);
+            requestPunchServerRpc(PunchType.Medium);
         }
 
         else if (Keyboard.current.lKey.wasPressedThisFrame) // Heavy Punch
         {
-            requestPunchServerRpc(heavyDamageMultiplier, heavyPunchCost);
+            requestPunchServerRpc(PunchType.Heavy);
         }
     }
 
-    [Rpc(SendTo.Server)]
-    private void requestPunchServerRpc(float damageMultiplier, float staminaCost)
+    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Owner)]
+    private void requestPunchServerRpc(PunchType type)
     {
-        if (player == null || isDefending() || isPlayerAttacking() || isPlayerExhausted())
+        if (!IsServer || player == null || gameManager == null || gameManager.isGameEndedOrGracePeriod() || isDefending() || isPlayerAttacking() || isPlayerExhausted())
         {
             return;
+        }
+
+        float damageMultiplier;
+        float staminaCost;
+
+        switch (type)
+        {
+            case PunchType.Light:
+                damageMultiplier = defaultDamageMultiplier;
+                staminaCost = lightPunchCost;
+                break;
+
+            case PunchType.Medium:
+                damageMultiplier = mediumDamageMultiplier;
+                staminaCost = mediumPunchCost;
+                break;
+
+            case PunchType.Heavy:
+                damageMultiplier = heavyDamageMultiplier;
+                staminaCost = heavyPunchCost;
+                break;
+
+            default:
+                return;
         }
 
         if (player.consumeStamina(staminaCost))
